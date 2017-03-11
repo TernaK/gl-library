@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 2.7)
+
+project(gl_library)
+
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
+set(CMAKE_CXX_STANDARD 11)
+# set(CMAKE_CXX_FLAGS "-Wall -framework OPENGL -framework CoreFoundation")
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+
+# add_definitions(-DSHADERS_PATH="${gl_library_SOURCE_DIR}/src/resources/shaders/")
+# add_definitions(-DTEXTURES_PATH="${gl_library_SOURCE_DIR}/src/resources/textures/")
+
+add_subdirectory(src)

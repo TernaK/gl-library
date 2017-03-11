@@ -1,2 +1,2 @@
 # gl-library
-Modern opengl library built from the ground up.
+Modern opengl library for macOS built from the ground up.
