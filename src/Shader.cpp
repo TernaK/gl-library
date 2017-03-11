@@ -22,7 +22,7 @@ Shader::Shader(std::string vertexShaderPath,
   /* vertex shader */
   ifs = ifstream(vertexShaderPath);
   if(!ifs.is_open()){
-    puts("ERROR::SHADER::could not find vertex shader");
+    cout << "ERROR::SHADER::could not find vertex shader: " << vertexShaderPath << endl;
     exit(-1);
   }
   ss << ifs.rdbuf();
@@ -32,7 +32,7 @@ Shader::Shader(std::string vertexShaderPath,
   /* fragment shader */
   ifs = ifstream(fragmentShaderPath);
   if(!ifs.is_open()){
-    puts("ERROR::SHADER::could not find fragment shader");
+    cout << "ERROR::SHADER::could not find fragment shader: " << fragmentShaderPath << endl;
     exit(-1);
   }
   ss.str("");//clear string
@@ -45,7 +45,7 @@ Shader::Shader(std::string vertexShaderPath,
   {
     ifs = ifstream(geometryShaderPath);
     if(!ifs.is_open()){
-      puts("ERROR::SHADER::could not find geometry shader");
+      cout << "ERROR::SHADER::could not find geometry shader: " << geometryShaderPath << endl;
       exit(-1);
     }
     ss.str("");//clear string

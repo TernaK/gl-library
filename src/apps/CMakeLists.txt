@@ -1,0 +1,2 @@
+add_executable(SineSurface SineSurface.cpp)
+target_link_libraries(SineSurface gl_library)
