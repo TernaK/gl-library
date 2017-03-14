@@ -1,2 +1,5 @@
 add_executable(SineSurface SineSurface.cpp)
 target_link_libraries(SineSurface gl_library)
+
+add_executable(GravityParticles GravityParticles.cpp)
+target_link_libraries(GravityParticles gl_library)
