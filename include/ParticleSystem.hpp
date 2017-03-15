@@ -43,9 +43,9 @@ typedef std::function<std::vector<glm::vec3>(const std::vector<Particle>&, float
 class ParticleSystem
 {
 public:
-  float clock;
+  float clock;// current time of the system
   std::vector<Particle> particles;
-  ForceFunction forceFunction;
+  ForceFunction forceFunction;//force evaluation function
   
   ParticleSystem(int numParticles, ForceFunction forceFunction);
   void update(float dt);

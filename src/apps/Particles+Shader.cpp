@@ -14,11 +14,6 @@
 #include "Light.hpp"
 #include "ParticleSystem.hpp"
 
-#define LIFE_MAX 1.0f
-
-int numX = 21;//make odd
-int numZ = 13;//make odd
-
 vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
 {
   vector<glm::vec3> forces;
@@ -28,12 +23,12 @@ vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
   return forces;
 }
 
-vector<GLfloat> getColors(vector<Particle>& particles)
+vector<GLfloat> getColors(vector<Particle>& particles, float lifeMax)
 {
   vector<GLfloat> colors;
   for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++)
   {
-    float scale = it->life / LIFE_MAX;
+    float scale = it->life / lifeMax;
     scale = scale < 0.0f ? 0 : scale;
     scale = scale > 1.0f ? 1 : scale;
     glm::vec4 color = glm::vec4(1.0,scale,0.3,1.0) * scale;
@@ -47,7 +42,7 @@ int main(int argc, char * argv[])
   
   GLFWwindow *window = glGetWindow();
   
-  //callback
+  // callback
   glfwSetKeyCallback(window, keyCallback);
   
   int width, height;
@@ -55,18 +50,19 @@ int main(int argc, char * argv[])
   glViewport(0, 0, width, height);
   GLfloat aspectRatio = GLfloat(width)/height;
   
-  /* shader */
+  // shader
   Shader shader = Shader("resources/shaders/particle_vshader.glsl", "resources/shaders/particle_fshader.glsl");
   
-  /* light */
+  // light
   Light light;
   
+  // particle system
   ParticleSystem ps(500, gravityFunction);
   glPointSize(5);
   
   float clock = 0;
   
-  /* render loop */
+  // render loop
   while(!glfwWindowShouldClose(window))
   {
     //timing
@@ -81,27 +77,27 @@ int main(int argc, char * argv[])
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.1, 0.1, 0.1, 1.0);
     
-    /* select and shader */
+    // select and shader
     shader.use();
     
-    /* setup model/view/projection */
+    // setup model/view/projection
     glm::vec3 eye = glm::vec3(-1.5,2,2);
     glm::mat4 view = glm::lookAt(eye, glm::vec3(0), glm::vec3(0,1,0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 10.0f);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
     
-    /* setup light */
+    // setup light
     light.position = glm::vec3(3,3,3);
     shader.setVector3f("eyePosition", eye);
     light.setInShader(shader);
     
-    /* render */
+    // render
     ps.update(dt);
     vector<GLfloat> positionsAndColors;
     ps.getPositons(positionsAndColors);
     long colorsOffset = positionsAndColors.size() * sizeof(GLfloat);
-    vector<GLfloat> colors = getColors(ps.particles);
+    vector<GLfloat> colors = getColors(ps.particles, ps.getLifeMax());
     positionsAndColors.insert(positionsAndColors.end(), colors.begin(), colors.end());
     
     //setup buffers
