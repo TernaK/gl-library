@@ -9,6 +9,7 @@ set(SOURCES
 	Material.cpp
 	GLNode.cpp
 	Light.cpp
+        ParticleSystem.cpp
 	)
 
 set(HEADERS 
@@ -18,10 +19,11 @@ set(HEADERS
 	${gl_library_SOURCE_DIR}/include/Material.hpp
 	${gl_library_SOURCE_DIR}/include/GLNode.hpp
 	${gl_library_SOURCE_DIR}/include/Light.hpp
+        ${gl_library_SOURCE_DIR}/include/ParticleSystem.hpp
 	)
 
 add_library(gl_library SHARED ${SOURCES} ${HEADERS})#lgtest
-target_link_libraries(gl_library glfw GLEW SOIL)
+target_link_libraries(gl_library glfw GLEW SOIL opencv_core)
 target_link_libraries(gl_library "-framework CoreFoundation")
 target_link_libraries(gl_library "-framework OPENGL")
 
