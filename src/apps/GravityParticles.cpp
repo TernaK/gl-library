@@ -1,5 +1,5 @@
 //
-//  SineSurface.cpp
+//  GravityParticles.cpp
 //  playground-modern
 //
 //  Created by Terna Kpamber on 3/9/17.
