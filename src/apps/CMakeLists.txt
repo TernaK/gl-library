@@ -6,3 +6,6 @@ target_link_libraries(GravityParticles gl_library)
 
 add_executable(Particles+Shader Particles+Shader.cpp)
 target_link_libraries(Particles+Shader gl_library)
+
+add_executable(ControlPoints ControlPoints.cpp)
+target_link_libraries(ControlPoints gl_library)
