@@ -10,10 +10,11 @@
 using namespace std;
 using namespace cv;
 
-ParticleSystem::ParticleSystem(int numParticles, ForceFunction forceFunction)
+ParticleSystem::ParticleSystem(int numParticles, ForceFunction forceFunction, CollisionFunction collisionFunction)
 {
   this->numParticles = numParticles;
   this->forceFunction = forceFunction;
+  this->collisionFunction = collisionFunction;
   
   for(int i = 0; i < numParticles; i++)
   {
@@ -27,19 +28,19 @@ ParticleSystem::ParticleSystem(int numParticles, ForceFunction forceFunction)
 
 void ParticleSystem::initParticle(Particle& particle)
 {
-  glm::vec3 position = glm::vec3(0,-0.5,0);
-  position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 0.1;
-  position.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.05;
-  position.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  glm::vec3 position = glm::vec3(0,0,0);
+  position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 5;
+  position.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 5;
+  position.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 5;
   
-  glm::vec3 velocity = glm::vec3(0,5,0);
+  glm::vec3 velocity = glm::vec3(0,0,0);
   velocity.x += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
-  velocity.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 1;
-  velocity.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  velocity.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
+  velocity.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
   
   particle.position = position;
-  particle.velocity = velocity;
-  particle.life = this->lifeMax - 1.0 + (float(arc4random() % 100) / 100.0f);
+  particle.velocity = 3.0f * glm::normalize(velocity);
+  particle.life = this->lifeMax;// - 1.0 + (float(arc4random() % 100) / 100.0f);
 }
 
 
@@ -62,6 +63,10 @@ void ParticleSystem::update(float dt)
     if(it->life < 0)
       initParticle(*it);
   }
+  
+  // collisions
+  if(collisionFunction)
+    collisionFunction(this->particles);
 }
 
 
