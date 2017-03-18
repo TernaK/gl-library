@@ -19,7 +19,7 @@ float radius = 1.414 * 0.2;
 void collisionFunction(vector<Particle>& particles)
 {
   vector<bool> handled = vector<bool>(particles.size(), false);
-  map<int, glm::vec3> newVelocities;
+  map<int, glm::vec3[3]> newVelocities; //index velocity contact
   
   // evaluate positions & test collisions
   for(int p = 0; p < particles.size(); p++)
@@ -38,11 +38,12 @@ void collisionFunction(vector<Particle>& particles)
         {
           glm::vec3 p2Normal = glm::normalize(p2->velocity);
           glm::vec3 newVelocity = glm::reflect(p1->velocity, p2Normal);
-          p1->velocity = newVelocity;
-//          newVelocities[p] = newVelocity;
+          newVelocities[p][0] = newVelocity;
           
           glm::vec3 contact = (p1->position + p2->position) / 2.0f;
-          p1->position = contact + 1.01f * radius * p2Normal;
+          newVelocities[p][1] = contact;
+          
+          newVelocities[p][2] = p2Normal;
           
           handled[p] = true;
           break;
@@ -54,28 +55,29 @@ void collisionFunction(vector<Particle>& particles)
     float wall = 3.0f;
     
     if(p1->position.x < -wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(1,0,0));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(1,0,0));
     if(p1->position.x > wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(-1,0,0));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(-1,0,0));
     
     if(p1->position.y < -wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(0,1,0));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(0,1,0));
     if(p1->position.y > wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(0,-1,0));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(0,-1,0));
     
     if(p1->position.z < -wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(0,0,1));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(0,0,1));
     if(p1->position.z > wall)
-      p1->velocity = glm::reflect(p1->velocity, glm::vec3(0,0,-1));
+      newVelocities[p][0] = glm::reflect(p1->velocity, glm::vec3(0,0,-1));
     
     p1->velocity = 3.0f * glm::normalize(p1->velocity);
     p1->life = 5;
   }
   
-//  for(auto nv: newVelocities)
-//  {
-//    particles[nv.first] = nv.second;
-//  }
+  for(auto nv: newVelocities)
+  {
+    particles[nv.first].velocity = nv.second[0];
+    particles[nv.first].position = nv.second[1] + 1.01f * radius * nv.second[2];
+  }
   
 }
 
