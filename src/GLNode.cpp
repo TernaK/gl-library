@@ -291,30 +291,103 @@ GLNode GLShapes::createSphere(float radius, int slices, int stacks)
         GLfloat z11 = radius * cos(v1) * cos(u1);
         glm::vec3 bottomRight = glm::vec3(x11,y11,z11);
         
-        /* get triangle 1 */
+        // get triangle 1 
         vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
         vertices.insert(vertices.end(), glm::value_ptr(bottomLeft), glm::value_ptr(bottomLeft)+3);//bottom left
         vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
         
-        /* normal */
+        // normal
         glm::vec3 l1 = bottomRight - bottomLeft;
         glm::vec3 l2 = topLeft - bottomLeft;
         glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
         for(int i = 0; i < 3; i++)
           normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
         
-        /* get triangle 2 */
+        // get triangle 2
         vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
         vertices.insert(vertices.end(), glm::value_ptr(topRight), glm::value_ptr(topRight)+3);//top right
         vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
         
-        /* normal */
+        // normal
         l1 = topLeft - topRight;
         l2 = bottomRight - topRight;
         normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
         for(int i = 0; i < 3; i++)
           normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
       }
+    }
+  }
+  
+  return GLNode(vertices, normals);
+}
+
+
+GLNode GLShapes::createTorrus(float innerRadius, float outerRadius, int slices, int sections)
+{
+  // generate single circle on x-y plane
+  vector<glm::vec3> circle;
+  float radius = (outerRadius - innerRadius) / 2.0f;
+  for(int s = 0; s < sections+1; s++)
+  {
+    GLfloat x = cos(float(s)/sections * 2 * M_PI);
+    GLfloat y = sin(float(s)/sections * 2 * M_PI);
+    circle.push_back(radius * glm::vec3(x,y,0.0f));
+  }
+  
+  // get positions and rotations - create circle on zx-z plane
+  vector<glm::vec3> circlePositions;
+  vector<GLfloat> circleRotations;
+  float mid = (innerRadius + outerRadius) / 2.0f;
+  for(int s = 0; s < (slices + 1); s++) // extra for loop around later
+  {
+    GLfloat theta = float(s)/slices * 2 * M_PI;
+    GLfloat x = cos(theta);
+    GLfloat z = sin(theta);
+    circlePositions.push_back(mid * glm::vec3(x,0,-z)); // to account for z towards the screen
+    
+    circleRotations.push_back(theta);
+  }
+  
+  vector<GLfloat> vertices, normals;
+  for(int p = 0; p < (circlePositions.size() - 1); p++)
+  {
+    // rotate & translate each point on the circle to the new location along a slice
+    glm::mat4 translation1 = glm::translate(glm::mat4(1.0f), circlePositions[p]);
+    glm::mat4 translation2 = glm::translate(glm::mat4(1.0f), circlePositions[p+1]);
+    glm::mat4 model1 = glm::rotate(translation1, circleRotations[p], glm::vec3(0,1,0));
+    glm::mat4 model2 = glm::rotate(translation2, circleRotations[p+1], glm::vec3(0,1,0));
+    
+    for(int s = 0; s < (circle.size() - 1); s++)
+    {
+      // not the order is due to anticlockwise nature of coordinate system
+      glm::vec3 topLeft = glm::vec3(model1 * glm::vec4(circle[s+1],1.0));
+      glm::vec3 bottomLeft = glm::vec3(model1 * glm::vec4(circle[s],1.0));
+      glm::vec3 topRight = glm::vec3(model2 * glm::vec4(circle[s+1],1.0));
+      glm::vec3 bottomRight = glm::vec3(model2 * glm::vec4(circle[s],1.0));
+      
+      // get triangle 1
+      vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
+      vertices.insert(vertices.end(), glm::value_ptr(bottomLeft), glm::value_ptr(bottomLeft)+3);//bottom left
+      vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
+      
+      // normal
+      glm::vec3 l1 = bottomRight - bottomLeft;
+      glm::vec3 l2 = topLeft - bottomLeft;
+      glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+      
+      // get triangle 2
+      vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
+      vertices.insert(vertices.end(), glm::value_ptr(topRight), glm::value_ptr(topRight)+3);//top right
+      vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
+      
+      // normal 
+      l1 = topLeft - topRight;
+      l2 = bottomRight - topRight;
+      normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
     }
   }
   
