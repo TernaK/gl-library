@@ -114,3 +114,143 @@ void GLNode::draw(const Shader& shader, glm::mat4 parentModel)
     child->draw(shader, model);
   }
 }
+
+
+/******************* GLShapes ********************/
+
+
+/**** cube ****/
+GLNode GLShapes::createCube(float side)
+{
+  assert(side > 0.001);
+  
+  // directly scale the vertices of the unit cubeif the scale is anything other than 1
+  vector<GLfloat> vertices;
+  if(fabs(side-1.0f) > FLT_EPSILON)
+  	std::for_each(UNIT_CUBE_VERTICES.begin(), UNIT_CUBE_VERTICES.end(),
+                 [&vertices, side](GLfloat v){
+                   return vertices.push_back(v * side);
+                 });
+  GLNode cube = GLNode(vertices, UNIT_CUBE_NORMALS, UNIT_CUBE_INDICES);
+  return cube;
+}
+/**** sphere ****/
+GLNode GLShapes::createSphere(float radius, int slices, int stacks)
+{
+  using std::vector;
+  using std::cerr;
+  
+  assert( (radius > 0.001) && (slices > 3) && (stacks > 3) && (stacks % 2 == 1));
+  
+  vector<GLfloat> vertices;
+  vector<GLfloat> normals;
+  for(int st = 0; st < stacks; st++)
+  {
+    float v0 = (M_PI/2) - float(st)/stacks * M_PI;
+    float v1 = v0 - M_PI/stacks;
+    
+    if(st == 0 || st == (stacks-1)) // top and bottom stacks
+    {
+      // peak
+      bool topPeak = (st == 0);
+      glm::vec3 peak = topPeak ? glm::vec3(0,radius,0) : glm::vec3(0,-radius,0);
+      
+      float v = topPeak ?  (M_PI/2.0f) - (M_PI/stacks) : -(M_PI/2.0f) + (M_PI/stacks) ;
+      
+      for(int sl = 0; sl < slices; sl++)
+      {
+        float u1 = float(sl)/slices * (2 * M_PI);
+        float u2 = u1 + (2 * M_PI)/slices;
+        
+//        printf("(%.0f,%.0f,%.0f)\n", peak.x, peak.y, peak.z);
+//        printf("(%.0f,%.0f)<->", glm::degrees(u1), glm::degrees(v));
+//        printf("(%.0f,%.0f)\n\n", glm::degrees(u2), glm::degrees(v));
+        
+        // slice1
+        GLfloat x1 = radius * cos(v) * sin(u1);
+        GLfloat y1 = radius * sin(v);
+        GLfloat z1 = radius * cos(v) * cos(u1);
+        
+        // slice 2
+        GLfloat x2 = radius * cos(v) * sin(u2);
+        GLfloat y2 = radius * sin(v);
+        GLfloat z2 = radius * cos(v) * cos(u2);
+        
+        glm::vec3 slice1 = topPeak ? glm::vec3(x1,y1,z1) : glm::vec3(x2,y2,z2); //if top use this as slice origin
+        glm::vec3 slice2 = topPeak ? glm::vec3(x2,y2,z2) : glm::vec3(x1,y1,z1); //if bottom use this as slice origin
+        
+        // get triangle 1
+        vertices.insert(vertices.end(), glm::value_ptr(peak), glm::value_ptr(peak)+3);
+        vertices.insert(vertices.end(), glm::value_ptr(slice1), glm::value_ptr(slice1)+3);
+        vertices.insert(vertices.end(), glm::value_ptr(slice2), glm::value_ptr(slice2)+3);
+        
+        // normal
+        glm::vec3 l1 = slice1 - peak;
+        glm::vec3 l2 = slice2 - peak;
+        glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+        for(int i = 0; i < 3; i++)
+          normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+      }
+    }
+    else
+    {
+      // generate parameters u -> longitude, v -> lattitude
+      for(int sl = 0; sl < slices; sl++)
+      {
+        float u0 = float(sl)/slices * (2 * M_PI);
+        float u1 = u0 + (2 * M_PI)/slices;
+        
+        // compute (x,y,z) based using the parametric form
+        // top left
+        GLfloat x00 = radius * cos(v0) * sin(u0);
+        GLfloat y00 = radius * sin(v0);
+        GLfloat z00 = radius * cos(v0) * cos(u0);
+        glm::vec3 topLeft = glm::vec3(x00,y00,z00);
+        
+        // bottom left
+        GLfloat x01 = radius * cos(v1) * sin(u0);
+        GLfloat y01 = radius * sin(v1);
+        GLfloat z01 = radius * cos(v1) * cos(u0);
+        glm::vec3 bottomLeft = glm::vec3(x01,y01,z01);
+        
+        // top right
+        GLfloat x10 = radius * cos(v0) * sin(u1);
+        GLfloat y10 = radius * sin(v0);
+        GLfloat z10 = radius * cos(v0) * cos(u1);
+        glm::vec3 topRight = glm::vec3(x10,y10,z10);
+        
+        // bottom right
+        GLfloat x11 = radius * cos(v1) * sin(u1);
+        GLfloat y11 = radius * sin(v1);
+        GLfloat z11 = radius * cos(v1) * cos(u1);
+        glm::vec3 bottomRight = glm::vec3(x11,y11,z11);
+        
+        /* get triangle 1 */
+        vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
+        vertices.insert(vertices.end(), glm::value_ptr(bottomLeft), glm::value_ptr(bottomLeft)+3);//bottom left
+        vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
+        
+        /* normal */
+        glm::vec3 l1 = bottomRight - bottomLeft;
+        glm::vec3 l2 = topLeft - bottomLeft;
+        glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+        for(int i = 0; i < 3; i++)
+          normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+        
+        /* get triangle 2 */
+        vertices.insert(vertices.end(), glm::value_ptr(bottomRight), glm::value_ptr(bottomRight)+3);//bottom right
+        vertices.insert(vertices.end(), glm::value_ptr(topRight), glm::value_ptr(topRight)+3);//top right
+        vertices.insert(vertices.end(), glm::value_ptr(topLeft), glm::value_ptr(topLeft)+3);//top left
+        
+        /* normal */
+        l1 = topLeft - topRight;
+        l2 = bottomRight - topRight;
+        normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+        for(int i = 0; i < 3; i++)
+          normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+      }
+    }
+  }
+  
+  return GLNode(vertices, normals);
+}

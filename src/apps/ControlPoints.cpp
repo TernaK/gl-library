@@ -49,8 +49,8 @@ int main(int argc, char * argv[])
   createSurface(vertices, normals, 21, 13, 2);
   
   GLNode surface = GLNode(vertices, normals);
-//  float clock = 0;
   
+//  float clock = 0;
   // render loop
   while(!glfwWindowShouldClose(window))
   {
@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
     shader.use();
     
     // setup model/view/projection
-    glm::vec3 eye = glm::vec3(0,10,10);
+    glm::vec3 eye = glm::vec3(10,10,10);
     glm::mat4 view = glm::lookAt(eye, glm::vec3(0), glm::vec3(0,1,0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 50.0f);
     shader.setMatrix4("view", view);
@@ -83,6 +83,7 @@ int main(int argc, char * argv[])
     // render
     surface.scale = glm::vec3(scale);
     surface.draw(shader);
+    surface.rotation += glm::vec3(0, 0.01, 0);
     
     glfwSwapBuffers(window);
   }
