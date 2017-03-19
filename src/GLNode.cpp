@@ -193,8 +193,7 @@ GLNode GLShapes::createCube(float side)
   
   // directly scale the vertices of the unit cubeif the scale is anything other than 1
   vector<GLfloat> vertices;
-  if(fabs(side-1.0f) > FLT_EPSILON)
-  	std::for_each(UNIT_CUBE_VERTICES.begin(), UNIT_CUBE_VERTICES.end(),
+  std::for_each(UNIT_CUBE_VERTICES.begin(), UNIT_CUBE_VERTICES.end(),
                  [&vertices, side](GLfloat v){
                    return vertices.push_back(v * side);
                  });

@@ -101,8 +101,14 @@ int main(int argc, char * argv[])
   glfwTerminate();
 }
 
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
   if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GL_TRUE);
+//  if(key == GLFW_KEY_UP && action == GLFW_PRESS)
+//    scale += 0.1;
+//  if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+//    scale -= 0.1;
 }
+

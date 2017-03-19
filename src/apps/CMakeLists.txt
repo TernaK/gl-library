@@ -9,3 +9,6 @@ target_link_libraries(Particles+Shader gl_library)
 
 add_executable(ControlPoints ControlPoints.cpp)
 target_link_libraries(ControlPoints gl_library)
+
+add_executable(Shapes Shapes.cpp)
+target_link_libraries(Shapes gl_library)
