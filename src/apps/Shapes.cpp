@@ -43,15 +43,18 @@ int main(int argc, char * argv[])
   Light light;
   
   // shapes
-  GLNode cube = GLShapes::createCube(1.1);
+  GLNode cube = GLShapes::createCube(0.5);
+  GLNode cylinder = GLShapes::createCylinder();
   GLNode sphere = GLShapes::createSphere(0.2, 11, 11);
   GLNode torrus = GLShapes::createTorrus(0.7, 1.0, 15, 11);
-  cube.position = glm::vec3(-2,0,2);
+  cube.position = glm::vec3(0,-0.8,0);
+  sphere.position = glm::vec3(0,0.75,0);
   
   GLNode nodes;
   nodes.addChild(&cube);
   nodes.addChild(&sphere);
   nodes.addChild(&torrus);
+  nodes.addChild(&cylinder);
   
   while(!glfwWindowShouldClose(window))
   {
@@ -81,7 +84,9 @@ int main(int argc, char * argv[])
     // render
     nodes.draw(shader);
     nodes.rotation += glm::vec3(0.01,0.01,0.01) * 0.2f;
+    cube.rotation += glm::vec3(0,0.01,0.01) * 0.8f;
     sphere.scale = glm::vec3(1.1) + glm::vec3(1.0f) * float(sin(glfwGetTime())/2.0f);
+    cylinder.scale = sphere.scale * 0.5f;
     torrus.rotation += glm::vec3(0,1,0) * 0.02f;
     
     glfwSwapBuffers(window);

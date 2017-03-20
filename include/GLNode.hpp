@@ -65,6 +65,8 @@ public:
   static GLNode createSphere(float radius = 0.5, int slices = 11, int stacks = 11);
   
   static GLNode createTorrus(float innerRadius = 0.6, float outerRadius = 1.0, int slices = 15, int sections = 11);
+  
+  static GLNode createCylinder(float radius = 0.5, float height = 1.0, int sections = 11);
 };
 
 #endif /* GLNode_hpp */
