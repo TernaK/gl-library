@@ -12,3 +12,6 @@ target_link_libraries(ControlPoints gl_library)
 
 add_executable(Shapes Shapes.cpp)
 target_link_libraries(Shapes gl_library)
+
+add_executable(Drone Drone.cpp)
+target_link_libraries(Drone gl_library)
