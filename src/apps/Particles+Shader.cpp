@@ -39,7 +39,7 @@ vector<GLfloat> getColors(vector<Particle>& particles, float lifeMax)
   return colors;
 }
 
-void initParticleFunction(Particle& particle)
+void initParticleFunction(Particle& particle, int index)
 {
   glm::vec3 position = glm::vec3(0,-0.5,0);
   position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 0.1;

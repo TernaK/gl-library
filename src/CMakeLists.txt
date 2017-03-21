@@ -10,6 +10,7 @@ set(SOURCES
 	GLNode.cpp
 	Light.cpp
         ParticleSystem.cpp
+        MassSpringSystem.cpp
 	)
 
 set(HEADERS 
@@ -20,6 +21,7 @@ set(HEADERS
 	${gl_library_SOURCE_DIR}/include/GLNode.hpp
 	${gl_library_SOURCE_DIR}/include/Light.hpp
         ${gl_library_SOURCE_DIR}/include/ParticleSystem.hpp
+        ${gl_library_SOURCE_DIR}/include/MassSpringSystem.hpp
 	)
 
 add_library(gl_library SHARED ${SOURCES} ${HEADERS})#lgtest

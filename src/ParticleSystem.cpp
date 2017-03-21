@@ -6,7 +6,7 @@
 //
 //
 
-#include "ParticleSystem.hpp"
+#include "MassSpringSystem.hpp"
 using namespace std;
 using namespace cv;
 
@@ -22,7 +22,7 @@ ParticleSystem::ParticleSystem(int numParticles,
   for(int i = 0; i < numParticles; i++)
   {
     Particle p;
-    particleInitFunction(p);
+    particleInitFunction(p, i);
     this->particles.push_back(p);
   }
   
@@ -46,7 +46,7 @@ void ParticleSystem::update(float dt)
     it->position += dt * it->velocity;
     it->life -= dt;
     if(it->life < 0)
-      particleInitFunction(*it);
+      particleInitFunction(*it, i);
   }
 }
 

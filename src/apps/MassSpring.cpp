@@ -12,34 +12,36 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Light.hpp"
-#include "ParticleSystem.hpp"
+#include "MassSpringSystem.hpp"
 
-#define LIFE_MAX 1.0f
+#define WIDTH 9
+#define HEIGHT 9
+#define REST 0.3f
 
-vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
+float zoom = 1.0f;
+
+vector<glm::vec3> forceFunction(const vector<Particle>& particles, float time)
 {
   vector<glm::vec3> forces;
   for(int i = 0; i < particles.size(); i++)
-    forces.push_back(particles[i].mass * glm::vec3(0,-10,0));
+    forces.push_back(particles[i].mass * glm::vec3(0,0,0));
   
   return forces;
 }
 
-void initParticleFunction(Particle& particle)
+void initParticleFunction(Particle& particle, int index)
 {
-  glm::vec3 position = glm::vec3(0,-0.5,0);
-  position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 0.1;
-  position.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.05;
-  position.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  glm::vec3 position;
+  position.x += (index % WIDTH) - (WIDTH / 2);
+  position.y += 0.0f;
+  position.z += (index / WIDTH) - (HEIGHT / 2);
   
-  glm::vec3 velocity = glm::vec3(0,5,0);
-  velocity.x += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
-  velocity.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 1;
-  velocity.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  glm::vec3 velocity = glm::vec3(0,0,0);
   
-  particle.position = position;
+  particle.position = position * REST;
   particle.velocity = velocity;
-  particle.life = LIFE_MAX - 1.0 + (float(arc4random() % 100) / 100.0f);
+  
+  particle.life = 10.0;
 }
 
 
@@ -78,7 +80,7 @@ int main(int argc, char * argv[])
   Light light;
   
   // particle system
-  ParticleSystem ps(500, gravityFunction, initParticleFunction);
+  MassSpringSystem ps(WIDTH*HEIGHT, forceFunction, initParticleFunction, UpdateFunction());
   glPointSize(5);
   
   float clock = 0;
@@ -102,9 +104,9 @@ int main(int argc, char * argv[])
     shader.use();
     
     // setup model/view/projection
-    glm::vec3 eye = glm::vec3(-1.5,2,2);
+    glm::vec3 eye = glm::vec3(-3, 3, 3) / zoom;
     glm::mat4 view = glm::lookAt(eye, glm::vec3(0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 10.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 50.0f);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
     
@@ -115,6 +117,7 @@ int main(int argc, char * argv[])
     
     // render
     ps.update(dt);
+    for_each(ps.particles.begin(), ps.particles.end(), [](Particle& p){ p.life = 10.0f; });//update the life
     vector<GLfloat> positionsAndColors;
     ps.getPositons(positionsAndColors);
     long colorsOffset = positionsAndColors.size() * sizeof(GLfloat);
@@ -156,4 +159,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 {
   if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GL_TRUE);
+  if(key == GLFW_KEY_UP && action == GLFW_PRESS)
+    zoom += 0.1;
+  if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    zoom -= 0.1;
 }

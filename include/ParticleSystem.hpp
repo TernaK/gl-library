@@ -40,7 +40,7 @@ typedef struct Particle
 
 // returns an array of forces for the particles
 typedef std::function<std::vector<glm::vec3>(const std::vector<Particle>&, float)> ForceFunction;
-typedef std::function<void(Particle&)> ParticleInitFunction;
+typedef std::function<void(Particle&, int)> ParticleInitFunction;
 
 class ParticleSystem
 {
@@ -56,9 +56,7 @@ public:
   void setLifeMax(float lifeMax) { assert(lifeMax > 0); this->lifeMax = lifeMax; }
   float getLifeMax(){ return lifeMax; }
   
-private:
-  void initParticle(Particle& particle);
-  
+protected:
   int numParticles;
   float lifeMax;
 };
