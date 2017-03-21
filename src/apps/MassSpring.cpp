@@ -16,17 +16,44 @@
 
 #define WIDTH 9
 #define HEIGHT 9
-#define REST 0.3f
+#define REST 0.5f
 #define SPRING_Ks 0.01f
-#define SPRING_Kd 0.005f
+#define SPRING_Kd 0.05f
 
 float zoom = 1.0f;
 
 vector<glm::vec3> forceFunction(const vector<Particle>& particles, float time)
 {
   vector<glm::vec3> forces;
-  for(int i = 0; i < particles.size(); i++)
-    forces.push_back(particles[i].mass * glm::vec3(0,-1,0));
+  for(int y = 0; y < HEIGHT; y++)
+  {
+    for(int x = 0; x < WIDTH; x++)
+    {
+      int i = y * WIDTH + x;
+      glm::vec3 forceExt = particles[i].mass * glm::vec3(0,-1 + (glfwGetTime() < 2 && i == 0 ? 1.0f : 0.0f),0);
+      // damping
+      glm::vec3 dampingForce = SPRING_Kd * particles[i].velocity;
+      // neighbour force
+      glm::vec3 neighbourForceSum = glm::vec3(0);
+      for(int yy = -1; yy < 2; yy++)
+      {
+        for(int xx = -1; xx < 2; xx++)
+        {
+          int _x = x + xx;
+          int _y = y + yy;
+          int _i = _y * WIDTH + _x;
+          // skip if outside or the same node
+          if(_x < 0 || _y < 0 || _x > (WIDTH-1) || _y > (HEIGHT-1) || (_i == i))
+            continue;
+          // otherwise add force impact
+          glm::vec3 diff = particles[i].position - particles[_i].position;
+          glm::vec3 neighbourForce = -SPRING_Ks * (glm::length(diff) - REST) * glm::normalize(diff);
+          neighbourForceSum += neighbourForce;
+        }
+      }
+      forces.push_back(forceExt + dampingForce + neighbourForceSum);
+    }
+  }
   
   return forces;
 }
@@ -34,9 +61,9 @@ vector<glm::vec3> forceFunction(const vector<Particle>& particles, float time)
 void initParticleFunction(Particle& particle, int index)
 {
   glm::vec3 position;
-  position.x += (index % WIDTH) - (WIDTH / 2);
-  position.y += 1.0f;
-  position.z += (index / WIDTH) - (HEIGHT / 2);
+  position.x = (index % WIDTH) - (WIDTH / 2);
+  position.y = 3.0f;
+  position.z = (index / WIDTH) - (HEIGHT / 2);
   
   glm::vec3 velocity = glm::vec3(0,0,0);
   
@@ -50,7 +77,7 @@ void updateFunction(std::vector<Particle>& particles, float dt)
 {
   // get forces
   vector<glm::vec3> forces = forceFunction(particles, glfwGetTime());
-  float floor = -1.0f;
+  float floor = 0.0f;
   
   for(int i = 0; i < particles.size(); i++)
   {
@@ -60,6 +87,26 @@ void updateFunction(std::vector<Particle>& particles, float dt)
     
     // constrain floor
     p.position.y = p.position.y > floor ? p.position.y : floor;
+    // constrain springs
+//    for(int y = 0; y < HEIGHT; y++)
+//    {
+//      for(int x = 0; x < WIDTH; x++)
+//      {
+//        int i = y * WIDTH + x;
+//        for(int yy = -1; yy < 2; yy++)
+//        {
+//          for(int xx = -1; xx < 2; xx++)
+//          {
+//            int _x = x + xx;
+//            int _y = y + yy;
+//            int _i = _y * WIDTH + _x;
+//            // skip if outside or the same node
+//            if(_x < 0 || _y < 0 || _x > (WIDTH-1) || _y > (HEIGHT-1) || (_i == i))
+//              continue;
+//          }
+//        }
+//      }
+//    }
 	}
   
   
@@ -95,7 +142,7 @@ int main(int argc, char * argv[])
   GLfloat aspectRatio = GLfloat(width)/height;
   
   // shader
-  Shader shader = Shader("resources/shaders/particle_vshader.glsl", "resources/shaders/particle_fshader.glsl");
+  Shader shader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
   
   // light
   Light light;
@@ -105,6 +152,8 @@ int main(int argc, char * argv[])
   glPointSize(5);
   
   float clock = 0;
+  
+  GLNode sphere = GLShapes::createSphere(0.05);
   
   // render loop
   while(!glfwWindowShouldClose(window))
@@ -138,37 +187,42 @@ int main(int argc, char * argv[])
     
     // render
     ps.update(dt);
-    for_each(ps.particles.begin(), ps.particles.end(), [](Particle& p){ p.life = 10.0f; });//update the life
-    vector<GLfloat> positionsAndColors;
-    ps.getPositons(positionsAndColors);
-    long colorsOffset = positionsAndColors.size() * sizeof(GLfloat);
-    vector<GLfloat> colors = getColors(ps.particles, ps.getLifeMax());
-    positionsAndColors.insert(positionsAndColors.end(), colors.begin(), colors.end());
+//    for_each(ps.particles.begin(), ps.particles.end(), [](Particle& p){ p.life = 10.0f; });//update the life
+//    vector<GLfloat> positionsAndColors;
+//    ps.getPositons(positionsAndColors);
+//    long colorsOffset = positionsAndColors.size() * sizeof(GLfloat);
+//    vector<GLfloat> colors = getColors(ps.particles, ps.getLifeMax());
+//    positionsAndColors.insert(positionsAndColors.end(), colors.begin(), colors.end());
+    for_each(ps.particles.begin(), ps.particles.end(), [&sphere, &shader](Particle& p){
+      p.life = 10.0f;
+      sphere.position = p.position;
+      sphere.draw(shader);
+    });
     
-    //setup buffers
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * positionsAndColors.size(), positionsAndColors.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)colorsOffset);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    //draw
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, (GLuint)ps.particles.size());
-    glBindVertexArray(0);
-    
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+//    //setup buffers
+//    GLuint VAO, VBO;
+//    glGenVertexArrays(1, &VAO);
+//    glGenBuffers(1, &VBO);
+//
+//    glBindVertexArray(VAO);
+//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * positionsAndColors.size(), positionsAndColors.data(), GL_STATIC_DRAW);
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+//    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)colorsOffset);
+//    glEnableVertexAttribArray(0);
+//    glEnableVertexAttribArray(1);
+//
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindVertexArray(0);
+//
+//    //draw
+//    glBindVertexArray(VAO);
+//    glDrawArrays(GL_POINTS, 0, (GLuint)ps.particles.size());
+//    glBindVertexArray(0);
+//    
+//    glDeleteBuffers(1, &VBO);
+//    glDeleteVertexArrays(1, &VAO);
 
     glfwSwapBuffers(window);
   }
