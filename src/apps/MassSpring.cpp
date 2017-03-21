@@ -17,6 +17,8 @@
 #define WIDTH 9
 #define HEIGHT 9
 #define REST 0.3f
+#define SPRING_Ks 0.01f
+#define SPRING_Kd 0.005f
 
 float zoom = 1.0f;
 
@@ -24,7 +26,7 @@ vector<glm::vec3> forceFunction(const vector<Particle>& particles, float time)
 {
   vector<glm::vec3> forces;
   for(int i = 0; i < particles.size(); i++)
-    forces.push_back(particles[i].mass * glm::vec3(0,0,0));
+    forces.push_back(particles[i].mass * glm::vec3(0,-1,0));
   
   return forces;
 }
@@ -33,7 +35,7 @@ void initParticleFunction(Particle& particle, int index)
 {
   glm::vec3 position;
   position.x += (index % WIDTH) - (WIDTH / 2);
-  position.y += 0.0f;
+  position.y += 1.0f;
   position.z += (index / WIDTH) - (HEIGHT / 2);
   
   glm::vec3 velocity = glm::vec3(0,0,0);
@@ -44,6 +46,25 @@ void initParticleFunction(Particle& particle, int index)
   particle.life = 10.0;
 }
 
+void updateFunction(std::vector<Particle>& particles, float dt)
+{
+  // get forces
+  vector<glm::vec3> forces = forceFunction(particles, glfwGetTime());
+  float floor = -1.0f;
+  
+  for(int i = 0; i < particles.size(); i++)
+  {
+    Particle& p = particles[i];
+    p.velocity += dt * (forces[i] / p.mass);
+    p.position += dt * p.velocity;
+    
+    // constrain floor
+    p.position.y = p.position.y > floor ? p.position.y : floor;
+	}
+  
+  
+  //  p.position.y = sin( (p.position.x / 2.0f) + glfwGetTime() * 2.0f);
+}
 
 vector<GLfloat> getColors(vector<Particle>& particles, float lifeMax)
 {
@@ -80,7 +101,7 @@ int main(int argc, char * argv[])
   Light light;
   
   // particle system
-  MassSpringSystem ps(WIDTH*HEIGHT, forceFunction, initParticleFunction, UpdateFunction());
+  MassSpringSystem ps(WIDTH*HEIGHT, forceFunction, initParticleFunction, updateFunction);
   glPointSize(5);
   
   float clock = 0;
