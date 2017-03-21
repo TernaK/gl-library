@@ -10,38 +10,24 @@
 using namespace std;
 using namespace cv;
 
-ParticleSystem::ParticleSystem(int numParticles, ForceFunction forceFunction)
+ParticleSystem::ParticleSystem(int numParticles,
+                               ForceFunction forceFunction, ParticleInitFunction particleInitFunction,
+                               float lifeMax)
 {
   this->numParticles = numParticles;
   this->forceFunction = forceFunction;
+  this->particleInitFunction = particleInitFunction;
+  this->lifeMax = lifeMax;
   
   for(int i = 0; i < numParticles; i++)
   {
     Particle p;
-    initParticle(p);
+    particleInitFunction(p);
     this->particles.push_back(p);
   }
   
   this->clock = 0;
 }
-
-void ParticleSystem::initParticle(Particle& particle)
-{
-  glm::vec3 position = glm::vec3(0,-0.5,0);
-  position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 0.1;
-  position.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.05;
-  position.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
-  
-  glm::vec3 velocity = glm::vec3(0,5,0);
-  velocity.x += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
-  velocity.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 1;
-  velocity.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
-  
-  particle.position = position;
-  particle.velocity = velocity;
-  particle.life = this->lifeMax - 1.0 + (float(arc4random() % 100) / 100.0f);
-}
-
 
 void ParticleSystem::update(float dt)
 {
@@ -60,7 +46,7 @@ void ParticleSystem::update(float dt)
     it->position += dt * it->velocity;
     it->life -= dt;
     if(it->life < 0)
-      initParticle(*it);
+      particleInitFunction(*it);
   }
 }
 

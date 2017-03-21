@@ -14,7 +14,7 @@
 #include "Light.hpp"
 #include "ParticleSystem.hpp"
 
-#define LIFE_MAX 5.0f
+#define LIFE_MAX 1.0f
 
 vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
 {
@@ -23,20 +23,6 @@ vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
     forces.push_back(particles[i].mass * glm::vec3(0,-10,0));
   
   return forces;
-}
-
-vector<GLfloat> getColors(vector<Particle>& particles, float lifeMax)
-{
-  vector<GLfloat> colors;
-  for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++)
-  {
-    float scale = it->life / lifeMax;
-    scale = scale < 0.0f ? 0 : scale;
-    scale = scale > 1.0f ? 1 : scale;
-    glm::vec4 color = glm::vec4(1.0,scale,0.3,1.0) * scale;
-    colors.insert(colors.end(), glm::value_ptr(color), glm::value_ptr(color)+4);
-  }
-  return colors;
 }
 
 void initParticleFunction(Particle& particle)
@@ -55,6 +41,22 @@ void initParticleFunction(Particle& particle)
   particle.velocity = velocity;
   particle.life = LIFE_MAX - 1.0 + (float(arc4random() % 100) / 100.0f);
 }
+
+
+vector<GLfloat> getColors(vector<Particle>& particles, float lifeMax)
+{
+  vector<GLfloat> colors;
+  for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++)
+  {
+    float scale = it->life / lifeMax;
+    scale = scale < 0.0f ? 0 : scale;
+    scale = scale > 1.0f ? 1 : scale;
+    glm::vec4 color = glm::vec4(1.0,scale,0.3,1.0) * scale;
+    colors.insert(colors.end(), glm::value_ptr(color), glm::value_ptr(color)+4);
+  }
+  return colors;
+}
+
 
 int main(int argc, char * argv[])
 {

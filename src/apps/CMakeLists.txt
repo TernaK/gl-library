@@ -15,3 +15,6 @@ target_link_libraries(Shapes gl_library)
 
 add_executable(Drone Drone.cpp)
 target_link_libraries(Drone gl_library)
+
+add_executable(MassSpring MassSpring.cpp)
+target_link_libraries(MassSpring gl_library)

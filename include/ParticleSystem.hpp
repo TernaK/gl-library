@@ -38,7 +38,9 @@ typedef struct Particle
   }
 } Particle;
 
+// returns an array of forces for the particles
 typedef std::function<std::vector<glm::vec3>(const std::vector<Particle>&, float)> ForceFunction;
+typedef std::function<void(Particle&)> ParticleInitFunction;
 
 class ParticleSystem
 {
@@ -46,8 +48,9 @@ public:
   float clock;// current time of the system
   std::vector<Particle> particles;
   ForceFunction forceFunction;//force evaluation function
+  ParticleInitFunction particleInitFunction;
   
-  ParticleSystem(int numParticles, ForceFunction forceFunction);
+  ParticleSystem(int numParticles, ForceFunction forceFunction, ParticleInitFunction particleInitFunction, float lifeMax = 1.0);
   void update(float dt);
   void getPositons(std::vector<GLfloat>& positions);
   void setLifeMax(float lifeMax) { assert(lifeMax > 0); this->lifeMax = lifeMax; }
@@ -57,7 +60,7 @@ private:
   void initParticle(Particle& particle);
   
   int numParticles;
-  float lifeMax = 1.0;
+  float lifeMax;
 };
 
 #endif /* ParticleSystem_hpp */
