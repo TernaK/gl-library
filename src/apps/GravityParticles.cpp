@@ -17,6 +17,7 @@
 int numX = 21;//make odd
 int numZ = 13;//make odd
 
+#define LIFE_MAX 1.5
 
 vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
 {
@@ -25,6 +26,23 @@ vector<glm::vec3> gravityFunction(const vector<Particle>& particles, float time)
     forces.push_back(particles[i].mass * glm::vec3(0,-10,0));
   
   return forces;
+}
+
+void initParticleFunction(Particle& particle, int index)
+{
+  glm::vec3 position = glm::vec3(-1,-0.5,0);
+  position.x += ((float(arc4random() % 100) / 100.0f) - 0.5) * 0.1;
+  position.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.05;
+  position.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  
+  glm::vec3 velocity = glm::vec3(3,4,0);
+  velocity.x += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 3;
+  velocity.y += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 1;
+  velocity.z += ((float(arc4random() % 100) / 100.0f) - 0.5)  * 0.1;
+  
+  particle.position = position;
+  particle.velocity = velocity;
+  particle.life = LIFE_MAX - 1.0 + (float(arc4random() % 100) / 100.0f);
 }
 
 int main(int argc, char * argv[])
@@ -46,7 +64,7 @@ int main(int argc, char * argv[])
   /* light */
   Light light;
   
-  ParticleSystem ps(50, gravityFunction);
+  ParticleSystem ps(50, gravityFunction, initParticleFunction);
   
   float clock = 0;
   
@@ -111,4 +129,3 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 //  if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
 //    scale -= 0.1;
 }
-

@@ -30,7 +30,7 @@ target_link_libraries(gl_library "-framework CoreFoundation")
 target_link_libraries(gl_library "-framework OPENGL")
 
 install(TARGETS gl_library DESTINATION lib)
-install(FILES ${fgl_library_HEADERS} DESTINATION include)
+install(FILES ${gl_library_HEADERS} DESTINATION include)
 
 add_subdirectory(apps)
 add_subdirectory(unit_tests)
