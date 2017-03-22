@@ -36,7 +36,7 @@ void ParticleSystem::update(float dt)
   this->clock += dt;
   
   // get forces
-  vector<glm::vec3> forces = forceFunction(this->particles, this->clock);
+  vector<glm::vec3> forces = forceFunction(*this, this->clock);
   
   // update particles
   for(int i = 0; i < particles.size(); i++)

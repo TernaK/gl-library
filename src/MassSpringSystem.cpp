@@ -11,15 +11,18 @@ using namespace std;
 using namespace cv;
 
 MassSpringSystem::MassSpringSystem(int numParticles,
-                               ForceFunction forceFunction,
-                               ParticleInitFunction particleInitFunction,
-                               UpdateFunction updateFunction,
-                               float lifeMax) : ParticleSystem(numParticles, forceFunction, particleInitFunction, lifeMax)
+                                   MSForceFunction forceFunction,
+                                   ParticleInitFunction particleInitFunction,
+                                   UpdateFunction updateFunction,
+                                   SpringInitFunction springInitFunction,
+                                   float lifeMax) : ParticleSystem(numParticles, ForceFunction(), particleInitFunction, lifeMax)
 {
 //  this->numParticles = numParticles;
 //  this->forceFunction = forceFunction;
 //  this->particleInitFunction = particleInitFunction;
   this->updateFunction = updateFunction;
+  this->springInitFunction = springInitFunction;
+  springInitFunction(this->particles, this->springs);
 //  this->lifeMax = lifeMax;
 //  
 //  for(int i = 0; i < numParticles; i++)
@@ -34,10 +37,9 @@ MassSpringSystem::MassSpringSystem(int numParticles,
 
 void MassSpringSystem::update(float dt)
 {
-  if(updateFunction)
-  	updateFunction(this->particles, dt);
-  else
-    ParticleSystem::update(dt);
+  updateFunction(*this, dt);
+//  else
+//    ParticleSystem::update(dt);
 //  // timing
 //  dt = dt/2;
 //  this->clock += dt;

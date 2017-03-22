@@ -39,7 +39,8 @@ typedef struct Particle
 } Particle;
 
 // returns an array of forces for the particles
-typedef std::function<std::vector<glm::vec3>(const std::vector<Particle>&, float)> ForceFunction;
+class ParticleSystem;
+typedef std::function<std::vector<glm::vec3>(ParticleSystem&, float)> ForceFunction;
 typedef std::function<void(Particle&, int)> ParticleInitFunction;
 
 class ParticleSystem
