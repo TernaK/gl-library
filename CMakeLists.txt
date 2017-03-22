@@ -11,6 +11,6 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 # add_definitions(-DSHADERS_PATH="${gl_library_SOURCE_DIR}/src/resources/shaders/")
 # add_definitions(-DTEXTURES_PATH="${gl_library_SOURCE_DIR}/src/resources/textures/")
 
-file(COPY resources DESTINATION ${gl_library_SOURCE_DIR}/build)
+file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})
 
 add_subdirectory(src)
