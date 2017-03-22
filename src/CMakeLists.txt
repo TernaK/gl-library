@@ -22,6 +22,7 @@ set(HEADERS
 	${gl_library_SOURCE_DIR}/include/Light.hpp
   ${gl_library_SOURCE_DIR}/include/ParticleSystem.hpp
   ${gl_library_SOURCE_DIR}/include/MassSpringSystem.hpp
+  ${gl_library_SOURCE_DIR}/include/AppTestUtility.hpp
 	)
 
 add_library(gl_library SHARED ${SOURCES} ${HEADERS})#lgtest
@@ -29,8 +30,8 @@ target_link_libraries(gl_library glfw GLEW SOIL opencv_core)
 target_link_libraries(gl_library "-framework CoreFoundation")
 target_link_libraries(gl_library "-framework OPENGL")
 
-install(TARGETS gl_library DESTINATION lib)
-install(FILES ${gl_library_HEADERS} DESTINATION include)
+# install(TARGETS gl_library DESTINATION lib)
+# install(FILES ${gl_library_HEADERS} DESTINATION include)
 
 add_subdirectory(apps)
 add_subdirectory(unit_tests)
