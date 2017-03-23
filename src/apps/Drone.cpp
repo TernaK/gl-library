@@ -1,6 +1,6 @@
 //
-//  Drone
-//  playground-modern
+//  Drone.cpp
+//  gl_library
 //
 //  Created by Terna Kpamber on 3/19/17.
 //  Copyright © 2017 Terna Kpamber. All rights reserved.

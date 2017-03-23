@@ -1,8 +1,8 @@
 //
-//  Shapes.cpp
+//  Text.cpp
 //  gl_library
 //
-//  Created by Terna Kpamber on 3/15/17.
+//  Created by Terna Kpamber on 3/23/17.
 //  Copyright © 2017 Terna Kpamber. All rights reserved.
 //
 

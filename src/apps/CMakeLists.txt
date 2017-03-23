@@ -21,4 +21,10 @@ if(BUILD_GL_LIB_APPS)
 
   add_executable(MassSpring MassSpring.cpp)
   target_link_libraries(MassSpring gl_library)
+  
+  find_package(OpenCV REQUIRED)
+  include_directories(${OpenCV_INCLUDE_DIRS})
+
+  add_executable(Text Text.cpp)
+  target_link_libraries(Text gl_library ${OpenCV_LIBS})
 endif()
