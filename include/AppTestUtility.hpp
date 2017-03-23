@@ -15,7 +15,7 @@
 using namespace std;
 
 /* setup window */
-GLFWwindow* glGetWindow(GLfloat width = 640, GLfloat height = 480)
+GLFWwindow* glGetWindow(GLfloat width = 640, GLfloat height = 480, std::string windowTitle = "gl render")
 {
   //glfw
   glfwInit();
@@ -25,7 +25,7 @@ GLFWwindow* glGetWindow(GLfloat width = 640, GLfloat height = 480)
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   
-  GLFWwindow *window = glfwCreateWindow(width, height, "hello modern opengl", nullptr, nullptr);
+  GLFWwindow *window = glfwCreateWindow(width, height, windowTitle.c_str(), nullptr, nullptr);
   if(window == nullptr){
     puts("failed to create glfw window");
     glfwTerminate();
