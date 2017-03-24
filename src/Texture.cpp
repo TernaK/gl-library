@@ -1,6 +1,6 @@
 //
 //  Texture.cpp
-//  playground-modern
+//  gl_library
 //
 //  Created by Terna Kpamber on 2/25/17.
 //  Copyright © 2017 Terna Kpamber. All rights reserved.
@@ -29,7 +29,6 @@ Texture::Texture(std::string imageFile)
   init(image);
   SOIL_free_image_data(image);
 }
-
 
 void Texture::init(GLubyte *data) {
   glGenTextures(1, &textureId);
