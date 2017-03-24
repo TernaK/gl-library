@@ -85,7 +85,7 @@ void GLTextNode::draw(Shader shader) {
   this->texture.activate(shader);
   shader.setInteger("texture", 0);
   shader.setFloat("scale", this->scale);
-  shader.setVector2f("translation", this->translation);
+  shader.setVector2f("translation", this->position);
   
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, 6);

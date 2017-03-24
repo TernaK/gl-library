@@ -27,7 +27,7 @@ public:
   void draw(Shader shader);
   
   float scale = 1.0f;
-  glm::vec2 translation = glm::vec2(0);
+  glm::vec2 position = glm::vec2(0);
 };
 
 #endif /* GLTextureNode_hpp */

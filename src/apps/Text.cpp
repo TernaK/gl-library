@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
   // text node
   GLTextNode tn("text");
   tn.scale = 0.5;
-  tn.translation = glm::vec2(-0.5,-0.5);
+  tn.position = glm::vec2(-0.5,-0.5);
   
   while(!glfwWindowShouldClose(window))
   {
