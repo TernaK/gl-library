@@ -30,7 +30,6 @@ Texture::Texture(std::string imageFile)
   SOIL_free_image_data(image);
 }
 
-
 void Texture::init(GLubyte *data) {
   glGenTextures(1, &textureId);
   glBindTexture(GL_TEXTURE_2D, textureId);
