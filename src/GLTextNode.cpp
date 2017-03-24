@@ -14,7 +14,7 @@ GLTextNode::GLTextNode() {
   
 }
 
-GLTextNode::GLTextNode(std::string text, GLfloat height) {
+GLTextNode::GLTextNode(std::string text, GLfloat midHeight) {
   // generate texture
   int font = FONT_HERSHEY_SIMPLEX;
   double fontScale = 3.0;
@@ -51,9 +51,12 @@ GLTextNode::GLTextNode(std::string text, GLfloat height) {
   // scale by the height
   float aspect = float(textImage.size().width) / float(textImage.size().height);
   for(int i = 0; i < vertices.size() / 3; i++) {
-    vertices[i * 3] *= height * aspect;
-    vertices[i * 3 + 1] *= height;
+    vertices[i * 3] *= midHeight * aspect;
+    vertices[i * 3 + 1] *= midHeight;
   }
+  
+  // set size
+  this->size = glm::vec2(midHeight * aspect * 2, midHeight * 2);
   
   // gl bindings and upload
   glGenVertexArrays(1, &this->VAO);

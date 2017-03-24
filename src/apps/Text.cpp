@@ -43,6 +43,7 @@ int main(int argc, char * argv[])
   GLTextNode tn("text");
   tn.scale = 0.5;
   tn.position = glm::vec2(-0.5,-0.5);
+  cout << tn.getSize().x ;
   
   while(!glfwWindowShouldClose(window))
   {

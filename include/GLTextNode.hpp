@@ -17,17 +17,19 @@ class GLTextNode {
 private:
   Texture texture;
   GLuint VAO, VBO;
+  glm::vec2 size;
   
 public:
   
   GLTextNode();
   
-  GLTextNode(std::string text, GLfloat height = 0.05f);
+  GLTextNode(std::string text, GLfloat midHeight = 0.05f);
   
   void draw(Shader shader);
   
   float scale = 1.0f;
   glm::vec2 position = glm::vec2(0);
+  glm::vec2 getSize(){ return this->size * this->scale; };
 };
 
 #endif /* GLTextureNode_hpp */
