@@ -40,8 +40,6 @@ GLTextNode::GLTextNode(std::string text, GLfloat midHeight) {
   vector<GLfloat> vertices = {
     -1,-1,0, 1,-1,0, -1,1,0,
     1,1,0,   -1,1,0, 1,-1,0
-    -1,-1,0, 1,-1,0, -1,1,0,
-    1,1,0,   -1,1,0, 1,-1,0
   };
   vector<GLfloat> texcoords = {
     0,1, 1,1, 0,0,
