@@ -6,7 +6,7 @@
 //
 //
 
-#include "MassSpringSystem.hpp"
+#include "ParticleSystem.hpp"
 using namespace std;
 using namespace cv;
 
