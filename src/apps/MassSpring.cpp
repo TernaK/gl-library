@@ -14,13 +14,15 @@
 #include "Light.hpp"
 #include "MassSpringSystem.hpp"
 
-#define WIDTH 21
-#define HEIGHT 7
+#define WIDTH 31
+#define HEIGHT 11
 #define REST 0.5f
-#define SPRING_Ks 20.0f
+#define SPRING_Ks 30.0f
 #define SPRING_Kd 0.6f
 
-float zoom = 0.5f;
+float zoom = 0.4f;
+
+void createSurface(const MassSpringSystem& mss, vector<GLfloat>& vertices , vector<GLfloat>& normals);
 
 vector<glm::vec3> forceFunction(MassSpringSystem& ps, float time)
 {
@@ -30,7 +32,7 @@ vector<glm::vec3> forceFunction(MassSpringSystem& ps, float time)
     for(int x = 0; x < WIDTH; x++)
     {
       int i = y * WIDTH + x;
-      glm::vec3 forceExt = ps.particles[i].mass * glm::vec3(0,-5,sin(3 * glfwGetTime()));
+      glm::vec3 forceExt = ps.particles[i].mass * glm::vec3(0,-5,6.5*sin(3 * glfwGetTime()));
       // damping
       glm::vec3 dampingForce = -SPRING_Kd * ps.particles[i].velocity;
       // neighbour force
@@ -57,7 +59,7 @@ void initParticleFunction(Particle& particle, int index)
 {
   glm::vec3 position;
   position.x = (index % WIDTH) - (WIDTH / 2);
-  position.y = 3.0f;
+  position.y = 5.0f;
   position.z = (index / WIDTH) - (HEIGHT / 2);
   
   glm::vec3 velocity = glm::vec3(0,0,0);
@@ -158,12 +160,12 @@ int main(int argc, char * argv[])
   Light light;
   
   // particle system
-  MassSpringSystem ps(WIDTH*HEIGHT, forceFunction, initParticleFunction, updateFunction, springInitFunction);
+  MassSpringSystem mss(WIDTH*HEIGHT, forceFunction, initParticleFunction, updateFunction, springInitFunction);
   glPointSize(5);
   
   float clock = 0;
   
-  GLNode particle = GLShapes::createSphere(0.05);
+  //GLNode particle = GLShapes::createSphere(0.05);
   
   // render loop
   while(!glfwWindowShouldClose(window))
@@ -185,26 +187,34 @@ int main(int argc, char * argv[])
     
     // setup model/view/projection
     glm::vec3 eye = glm::vec3(-4,-1,5) / zoom;
-    glm::mat4 view = glm::lookAt(eye, glm::vec3(0), glm::vec3(0,1,0));
+    glm::mat4 view = glm::lookAt(eye, glm::vec3(-1,0,0), glm::vec3(0,1,0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
     
     // setup light
-    light.position = glm::vec3(3,0,3);
-    light.Kq = 0;
-    light.Kl = 0;
+    light.position = glm::vec3(5,0,5);
+    light.Kq = 0.05;
+    light.Kl = 0.01;
     shader.setVector3f("eyePosition", eye);
     light.setInShader(shader);
     
     // render
+    /*
     ps.update(dt);
     for_each(ps.particles.begin(), ps.particles.end(), [&particle, &shader](Particle& p){
       p.life = 10.0f;
       particle.position = p.position;
       particle.draw(shader);
     });
+     */
+    mss.update(dt);
+    vector<GLfloat> vertices, normals;
+    createSurface(mss, vertices, normals);
+    GLNode cloth = GLNode(vertices, normals);
 
+    cloth.draw(shader);
+    
     glfwSwapBuffers(window);
   }
   
@@ -219,4 +229,51 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
     zoom += 0.1;
   if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
     zoom -= 0.1;
+}
+
+void createSurface(const MassSpringSystem& mss, vector<GLfloat>& vertices , vector<GLfloat>& normals)
+{
+  // form vertices and normals
+  vertices.clear();
+  normals.clear();
+  
+  for(int z = 0; z < HEIGHT - 1; z++)
+  {
+    for(int x = 0; x < WIDTH - 1; x++)
+    {
+      // get triangle 1
+      int tlIdx = z * WIDTH + x;
+      int blIdx = (z + 1) * WIDTH + x;
+      int trIdx = z * WIDTH + x + 1;
+      int brIdx = (z + 1) * WIDTH + x + 1;
+      glm::vec3 tl = mss.particles[tlIdx].position;
+      glm::vec3 bl = mss.particles[blIdx].position;
+      glm::vec3 tr = mss.particles[trIdx].position;
+      glm::vec3 br = mss.particles[brIdx].position;
+      vertices.insert(vertices.end(), glm::value_ptr(tl), glm::value_ptr(tl)+3);//top left
+      vertices.insert(vertices.end(), glm::value_ptr(bl), glm::value_ptr(bl)+3);//bottom left
+      vertices.insert(vertices.end(), glm::value_ptr(br), glm::value_ptr(br)+3);//bottom right
+      
+      // normal
+      glm::vec3 l1 = bl - tl;
+      glm::vec3 l2 = tr - tl;
+      glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+      
+      // get triangle 2
+      vertices.insert(vertices.end(), glm::value_ptr(br), glm::value_ptr(br)+3);//bottom right
+      vertices.insert(vertices.end(), glm::value_ptr(tr), glm::value_ptr(tr)+3);//top right
+      vertices.insert(vertices.end(), glm::value_ptr(tl), glm::value_ptr(tl)+3);//top left
+      
+      // normal
+      l1 = tr - br;
+      l2 = bl - br;
+      normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+    }
+  }
+  
+  // form normals
 }
