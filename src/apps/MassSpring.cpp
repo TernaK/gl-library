@@ -14,10 +14,10 @@
 #include "Light.hpp"
 #include "MassSpringSystem.hpp"
 
-#define WIDTH 31
+#define WIDTH 25
 #define HEIGHT 11
-#define REST 0.5f
-#define SPRING_Ks 30.0f
+#define REST 0.3f
+#define SPRING_Ks 50.0f
 #define SPRING_Kd 0.6f
 
 float zoom = 0.4f;
@@ -59,7 +59,7 @@ void initParticleFunction(Particle& particle, int index)
 {
   glm::vec3 position;
   position.x = (index % WIDTH) - (WIDTH / 2);
-  position.y = 5.0f;
+  position.y = HEIGHT;
   position.z = (index / WIDTH) - (HEIGHT / 2);
   
   glm::vec3 velocity = glm::vec3(0,0,0);
@@ -92,13 +92,11 @@ void springInitFunction(const std::vector<Particle>& particles, std::vector<Spri
     for(int s = 0; s < HEIGHT - 1; s++){
       int idx = s * WIDTH + w;
       // top-left to bottom-right
-      springs.push_back(Spring(diagonal, SPRING_Ks, SPRING_Kd, idx, (idx+WIDTH+1)));
+      springs.push_back(Spring(diagonal, SPRING_Ks*0.5, SPRING_Kd, idx, (idx+WIDTH+1)));
       // top-right to bottom-left
-      springs.push_back(Spring(diagonal, SPRING_Ks, SPRING_Kd, idx+1, (idx+WIDTH)));
+      springs.push_back(Spring(diagonal, SPRING_Ks*0.5, SPRING_Kd, idx+1, (idx+WIDTH)));
     }
   }
-  
-  
 }
 
 void updateFunction(MassSpringSystem& ps, float dt)
@@ -193,8 +191,8 @@ int main(int argc, char * argv[])
     shader.setMatrix4("projection", projection);
     
     // setup light
-    light.position = glm::vec3(5,0,5);
-    light.Kq = 0.05;
+    light.position = glm::vec3(5,3,5);
+    light.Kq = 0.01;
     light.Kl = 0.01;
     shader.setVector3f("eyePosition", eye);
     light.setInShader(shader);
