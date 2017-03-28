@@ -2,6 +2,7 @@
 Modern opengl library for macOS built from the ground up.
 
 This cloth simulation was made using a simple mass spring system and some differential equations.
+
 ![cloth](cloth.gif)
 
 # Requirements
