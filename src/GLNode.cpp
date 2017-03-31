@@ -476,3 +476,41 @@ GLNode GLShapes::createCylinder(float radius, float height, int sections)
   
   return GLNode(vertices, normals);
 }
+
+GLNode GLShapes::createSurface(vector<vector<glm::vec3>> grid)
+{
+  // form vertices and normals
+  vector<GLfloat> vertices;
+  vector<GLfloat> normals;
+  for(int z = 0; z < grid.size() - 1; z++)
+  {
+    for(int x = 0; x < grid[0].size() - 1; x++)
+    {
+      // get triangle 1
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z][x]), glm::value_ptr(grid[z][x])+3);//top left
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z+1][x]), glm::value_ptr(grid[z+1][x])+3);//bottom left
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z+1][x+1]), glm::value_ptr(grid[z+1][x+1])+3);//bottom right
+      
+      // normal
+      glm::vec3 l1 = grid[z+1][x] - grid[z][x];
+      glm::vec3 l2 = grid[z][x+1] - grid[z][x];
+      glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+      
+      // get triangle 2
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z+1][x+1]), glm::value_ptr(grid[z+1][x+1])+3);//bottom right
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z][x+1]), glm::value_ptr(grid[z][x+1])+3);//top right
+      vertices.insert(vertices.end(), glm::value_ptr(grid[z][x]), glm::value_ptr(grid[z][x])+3);//top left
+      
+      // normal
+      l1 = grid[z][x] - grid[z][x+1];
+      l2 = grid[z+1][x+1] - grid[z][x+1];
+      normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
+      for(int i = 0; i < 3; i++)
+        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
+    }
+  }
+  
+  return GLNode(vertices, normals);
+}

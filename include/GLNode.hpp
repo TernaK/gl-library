@@ -67,6 +67,8 @@ public:
   static GLNode createTorrus(float innerRadius = 0.6, float outerRadius = 1.0, int slices = 15, int sections = 11);
   
   static GLNode createCylinder(float radius = 0.5, float height = 1.0, int sections = 11);
+  
+  static GLNode createSurface(std::vector<std::vector<glm::vec3>> grid);
 };
 
 #endif /* GLNode_hpp */

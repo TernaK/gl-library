@@ -61,6 +61,8 @@ public:
                    SpringInitFunction springInitFunction,
                    float lifeMax = 1.0);
   void update(float dt);
+  static void createSurface(const MassSpringSystem& mss, int width, int height,
+                            std::vector<GLfloat>& vertices, std::vector<GLfloat>& normals);
 //  void getPositons(std::vector<GLfloat>& positions);
 //  void setLifeMax(float lifeMax) { assert(lifeMax > 0); this->lifeMax = lifeMax; }
 //  float getLifeMax(){ return lifeMax; }

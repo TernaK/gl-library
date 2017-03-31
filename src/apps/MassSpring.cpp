@@ -17,12 +17,10 @@
 #define WIDTH 25
 #define HEIGHT 11
 #define REST 0.3f
-#define SPRING_Ks 50.0f
+#define SPRING_Ks 20.0f
 #define SPRING_Kd 0.6f
 
 float zoom = 0.4f;
-
-void createSurface(const MassSpringSystem& mss, vector<GLfloat>& vertices , vector<GLfloat>& normals);
 
 vector<glm::vec3> forceFunction(MassSpringSystem& ps, float time)
 {
@@ -208,7 +206,7 @@ int main(int argc, char * argv[])
      */
     mss.update(dt);
     vector<GLfloat> vertices, normals;
-    createSurface(mss, vertices, normals);
+    MassSpringSystem::createSurface(mss, WIDTH, HEIGHT, vertices, normals);
     GLNode cloth = GLNode(vertices, normals);
 
     cloth.draw(shader);
@@ -227,51 +225,4 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
     zoom += 0.1;
   if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
     zoom -= 0.1;
-}
-
-void createSurface(const MassSpringSystem& mss, vector<GLfloat>& vertices , vector<GLfloat>& normals)
-{
-  // form vertices and normals
-  vertices.clear();
-  normals.clear();
-  
-  for(int z = 0; z < HEIGHT - 1; z++)
-  {
-    for(int x = 0; x < WIDTH - 1; x++)
-    {
-      // get triangle 1
-      int tlIdx = z * WIDTH + x;
-      int blIdx = (z + 1) * WIDTH + x;
-      int trIdx = z * WIDTH + x + 1;
-      int brIdx = (z + 1) * WIDTH + x + 1;
-      glm::vec3 tl = mss.particles[tlIdx].position;
-      glm::vec3 bl = mss.particles[blIdx].position;
-      glm::vec3 tr = mss.particles[trIdx].position;
-      glm::vec3 br = mss.particles[brIdx].position;
-      vertices.insert(vertices.end(), glm::value_ptr(tl), glm::value_ptr(tl)+3);//top left
-      vertices.insert(vertices.end(), glm::value_ptr(bl), glm::value_ptr(bl)+3);//bottom left
-      vertices.insert(vertices.end(), glm::value_ptr(br), glm::value_ptr(br)+3);//bottom right
-      
-      // normal
-      glm::vec3 l1 = bl - tl;
-      glm::vec3 l2 = tr - tl;
-      glm::vec3 normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
-      for(int i = 0; i < 3; i++)
-        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
-      
-      // get triangle 2
-      vertices.insert(vertices.end(), glm::value_ptr(br), glm::value_ptr(br)+3);//bottom right
-      vertices.insert(vertices.end(), glm::value_ptr(tr), glm::value_ptr(tr)+3);//top right
-      vertices.insert(vertices.end(), glm::value_ptr(tl), glm::value_ptr(tl)+3);//top left
-      
-      // normal
-      l1 = tr - br;
-      l2 = bl - br;
-      normal = glm::normalize(glm::cross(l1, l2));//note the order of the cross
-      for(int i = 0; i < 3; i++)
-        normals.insert(normals.end(), glm::value_ptr(normal), glm::value_ptr(normal)+3);
-    }
-  }
-  
-  // form normals
 }
