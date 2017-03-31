@@ -27,4 +27,7 @@ if(BUILD_GL_LIB_APPS)
 
   add_executable(Text Text.cpp)
   target_link_libraries(Text gl_library ${OpenCV_LIBS})
+
+  add_executable(Framebuffer Framebuffer.cpp)
+  target_link_libraries(Framebuffer gl_library)
 endif()
