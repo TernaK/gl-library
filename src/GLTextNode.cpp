@@ -83,7 +83,6 @@ GLTextNode::GLTextNode(std::string text, GLfloat midHeight) {
 }
 
 void GLTextNode::draw(Shader shader) {
-  this->texture.activate(shader);
   shader.setInteger("texture", 0);
   shader.setFloat("scale", this->scale);
   shader.setVector2f("translation", this->position);
