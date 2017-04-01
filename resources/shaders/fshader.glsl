@@ -9,5 +9,8 @@ uniform sampler2D textureObject;
 out vec4 color;
 
 void main() {
-  color = texture(textureObject, fs_in.f_Texcoord);
+  //if(fs_in.f_Texcoord.x < 0.5)
+    color = texture(textureObject, fs_in.f_Texcoord);
+  //else
+    //color = vec4(0,0,0,1);//texture(textureObject, fs_in.f_Texcoord + vec2(0.05));
 }
