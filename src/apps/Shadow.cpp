@@ -14,7 +14,7 @@
 #include "Light.hpp"
 #include "GLTextNode.hpp"
 
-float zoom = 1.0;
+float zoom = 0.5;
 
 float randomFloat()
 {
@@ -42,11 +42,13 @@ int main(int argc, char * argv[])
   Light light;
   
   GLNode body = GLShapes::createTorrus();
-  body.position.z = -1.0f;
   
-  GLNode wall = GLShapes::createCube();
-  wall.scale = glm::vec3(5.0f, 5.0f, 0.01f);
-  wall.position.z = -2.0;
+  GLNode cube = GLShapes::createCube();
+  cube.scale = glm::vec3(2, 0.3, 2);
+  cube.position.y = 0.15;
+  
+  GLNode floor = GLShapes::createCube();
+  floor.scale = glm::vec3(8.0f, 0.01f, 8.0f);
   
   //texture object
   vector<GLfloat> vertices = {
@@ -122,22 +124,24 @@ int main(int argc, char * argv[])
     preShader.use();
     
     // setup light
-    light.position = glm::vec3(4,2,4);
-    light.Kq = 0.01;
-    light.Kl = 0.01;
+    glm::vec3 eye = glm::vec3(-2,3,6);
+    light.position = glm::vec3(1,15,3);
+    light.Kq = 0.001;
+    light.Kl = 0.005;
     
     preShader.setVector3f("eyePosition", light.position);
     light.setInShader(preShader);
     
     // setup model/view/projection
     glm::mat4 view = glm::lookAt(light.position, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 9.0f);
+    glm::mat4 projection = glm::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 16.3f);
     preShader.setMatrix4("view", view);
     preShader.setMatrix4("projection", projection);
     
     glm::mat4 lightProjectionViewProduct = projection * view;
     
     body.draw(preShader);
+    cube.draw(preShader);
     
     //post
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -149,8 +153,7 @@ int main(int argc, char * argv[])
     postShader.use();
     
     // eye
-    glm::vec3 eye = glm::vec3(0,0,5) / zoom;
-    view = glm::lookAt(eye, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    view = glm::lookAt(eye/zoom, glm::vec3(0,0,0), glm::vec3(0,1,0));
     projection = glm::perspective(glm::radians(35.0f), aspectRatio, 0.1f, 50.0f);
     postShader.setMatrix4("view", view);
     postShader.setMatrix4("projection", projection);
@@ -167,10 +170,11 @@ int main(int argc, char * argv[])
     postShader.setMatrix4("lightProjectionViewProduct", lightProjectionViewProduct);
     
     //draw
-    wall.draw(postShader);
+    floor.draw(postShader);
+    cube.draw(postShader);
     body.draw(postShader);
     body.rotation.x += 0.01;
-    body.position.y = sin(glfwGetTime());
+    body.position.y = 2.5 + sin(glfwGetTime());
     
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {

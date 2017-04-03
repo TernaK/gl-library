@@ -64,7 +64,7 @@ void main()
   float fragDepthInLightSpace = fragInLightSpace.z;
   float closestDepthInLightView = texture(depthTexture, locationInShadowTexture).r;//the first channel
   
-  if(fragDepthInLightSpace > closestDepthInLightView) {
+  if((fragDepthInLightSpace - closestDepthInLightView) > 0.001) {
     diffuse *= 0.0f;
     specular *= 0.0f;
   }
