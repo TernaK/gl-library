@@ -37,13 +37,16 @@ int main(int argc, char * argv[])
   
   //shader
   Shader preShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
-  Shader postShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
-  //Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
+  Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
   
   Light light;
   
-  GLNode body = GLShapes::createSphere(0.5, 21, 21);
+  GLNode body = GLShapes::createTorrus();
   body.position.z = -1.0f;
+  
+  GLNode wall = GLShapes::createCube();
+  wall.scale = glm::vec3(5.0f, 5.0f, 0.01f);
+  wall.position.z = -2.0;
   
   //texture object
   vector<GLfloat> vertices = {
@@ -119,7 +122,7 @@ int main(int argc, char * argv[])
     preShader.use();
     
     // setup light
-    light.position = glm::vec3(5,5,5);
+    light.position = glm::vec3(4,2,4);
     light.Kq = 0.01;
     light.Kl = 0.01;
     
@@ -128,9 +131,11 @@ int main(int argc, char * argv[])
     
     // setup model/view/projection
     glm::mat4 view = glm::lookAt(light.position, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 10.0f);//glm::perspective(glm::radians(35.0f), aspectRatio, 0.1f, 50.0f);
+    glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 9.0f);
     preShader.setMatrix4("view", view);
     preShader.setMatrix4("projection", projection);
+    
+    glm::mat4 lightProjectionViewProduct = projection * view;
     
     body.draw(preShader);
     
@@ -155,13 +160,17 @@ int main(int argc, char * argv[])
     light.setInShader(postShader);
     
     //texture
-    //t.activate(postShader);
-    //GLint loc = glGetUniformLocation(postShader.program, "textureObject");
-    //glUniform1i(loc, 0);
+    t.activate(postShader);
+    postShader.setInteger("depthTexture", 0);
+    
+    //light projection view matrix
+    postShader.setMatrix4("lightProjectionViewProduct", lightProjectionViewProduct);
     
     //draw
-    body.draw(preShader);
-    body.rotation.y += 0.01;
+    wall.draw(postShader);
+    body.draw(postShader);
+    body.rotation.x += 0.01;
+    body.position.y = sin(glfwGetTime());
     
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
