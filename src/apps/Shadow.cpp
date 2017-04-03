@@ -42,7 +42,11 @@ int main(int argc, char * argv[])
   
   Light light;
   
-  GLNode body = GLShapes::createTorrus(1.6, 1.9);
+  GLNode body;
+  GLNode torrus1 = GLShapes::createTorrus(0.9, 1.2, 21, 21);//createTorrus(1.6, 1.9);
+  GLNode torrus2 = GLShapes::createTorrus(1.6, 1.9, 21, 21);
+  body.addChild(&torrus1);
+  body.addChild(&torrus2);
   
   GLNode cube = GLShapes::createCube();
   cube.scale = glm::vec3(2, 0.3, 2);
@@ -127,16 +131,16 @@ int main(int argc, char * argv[])
     
     // setup light
     glm::vec3 eye = glm::vec3(-2,3,6);
-    light.position = glm::vec3(3,15,3);
-    light.Kq = 0.004;
-    light.Kl = 0.004;
+    light.position = glm::vec3(5,10,5);
+    light.Kq = 0.003;
+    light.Kl = 0.001;
     
     preShader.setVector3f("eyePosition", light.position);
     light.setInShader(preShader);
     
     // setup model/view/projection
     glm::mat4 view = glm::lookAt(light.position, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::ortho<float>(-6.4f, 6.4f, -4.8f, 4.8f, 0.1f, 15.0f);
+    glm::mat4 projection = glm::ortho<float>(-6.4f, 6.4f, -4.8f, 4.8f, 0.1f, 25.0f);
     preShader.setMatrix4("view", view);
     preShader.setMatrix4("projection", projection);
     
@@ -144,7 +148,7 @@ int main(int argc, char * argv[])
     
     floor.draw(preShader);
     body.draw(preShader);
-    cube.draw(preShader);
+    //cube.draw(preShader);
     
     //post
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -175,7 +179,7 @@ int main(int argc, char * argv[])
     //draw
     floor.draw(postShader);
     body.draw(postShader);
-    cube.draw(postShader);
+    //cube.draw(postShader);
     
     
     /*
@@ -203,6 +207,9 @@ int main(int argc, char * argv[])
     //update states
     body.rotation.x += 0.01;
     body.position.y = 3.0 + sin(glfwGetTime());
+    torrus1.rotation.x += 0.05;
+    torrus2.rotation.z += 0.05;
+    torrus1.scale = glm::vec3(1.0f) + 0.2f * glm::vec3(sin(glfwGetTime()));
     
     glfwSwapBuffers(window);
   }
