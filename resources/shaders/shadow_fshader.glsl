@@ -23,12 +23,12 @@ struct Light
 
 in v_data
 {
-  vec3 f_Position;
   vec3 f_Normal;
+  vec3 f_Position;
+  vec3 f_PositionInLightSpace;
 } fs_in;
 
 uniform sampler2D depthTexture;
-uniform mat4 lightProjectionViewProduct;
 
 uniform vec3 eyePosition;
 uniform Material material;/* set by Material */
@@ -56,21 +56,18 @@ void main()
   float r = length(light.position - fs_in.f_Position);
   float attenuation = 1/(light.Kc + light.Kl * r + light.Kq * r * r );
   
-  vec4 fragInLightSpace = lightProjectionViewProduct * vec4(fs_in.f_Position, 1.0);
-  fragInLightSpace /= fragInLightSpace.w;
+  // frag position normalized
+  vec3 fragInLightSpace = fs_in.f_PositionInLightSpace * 0.5 + 0.5;
   
-  vec2 locationInShadowTexture = fragInLightSpace.xy * 0.5 + 0.5;
+  // be extra careful
+  float fragDepthInLightSpace = clamp(fragInLightSpace.z, 0, 1.0);
+  float closestDepthInLightView = texture(depthTexture, fragInLightSpace.xy).r;//the first channel
   
-  float fragDepthInLightSpace = fragInLightSpace.z;
-  float closestDepthInLightView = texture(depthTexture, locationInShadowTexture).r;//the first channel
-  
-  if((fragDepthInLightSpace - closestDepthInLightView) > 0.001) {
-    diffuse *= 0.0f;
-    specular *= 0.0f;
+  float epsilon= 0.001;
+  if((fragDepthInLightSpace - closestDepthInLightView) > epsilon) {
+    diffuse = vec3(0.0f);
+    specular = vec3(0.0f);
   }
-  
-  //float depth = texture(depthTexture, fragInLightSpace.xy).x;
-  //color = vec4(vec3(closestDepthInLightView), 1.0);
 
   color = vec4( (ambient + (diffuse + specular) * attenuation), 1.0f);
 }

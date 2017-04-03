@@ -14,7 +14,7 @@
 #include "Light.hpp"
 #include "GLTextNode.hpp"
 
-float zoom = 0.5;
+float zoom = 0.35;
 
 float randomFloat()
 {
@@ -38,10 +38,11 @@ int main(int argc, char * argv[])
   //shader
   Shader preShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
   Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
+  //Shader depthShader = Shader("resources/shaders/framebuffer_vshader.glsl", "resources/shaders/framebuffer_fshader.glsl");
   
   Light light;
   
-  GLNode body = GLShapes::createTorrus();
+  GLNode body = GLShapes::createTorrus(1.6, 1.9);
   
   GLNode cube = GLShapes::createCube();
   cube.scale = glm::vec3(2, 0.3, 2);
@@ -70,6 +71,7 @@ int main(int argc, char * argv[])
   glGenBuffers(1, &verticesVBO);
   glGenBuffers(1, &texcoordsVBO);
   
+  // for rendering (only) texture
   glBindVertexArray(VAO);
   
   glBindBuffer(GL_ARRAY_BUFFER, verticesVBO);
@@ -125,21 +127,22 @@ int main(int argc, char * argv[])
     
     // setup light
     glm::vec3 eye = glm::vec3(-2,3,6);
-    light.position = glm::vec3(1,15,3);
-    light.Kq = 0.001;
-    light.Kl = 0.005;
+    light.position = glm::vec3(3,15,3);
+    light.Kq = 0.004;
+    light.Kl = 0.004;
     
     preShader.setVector3f("eyePosition", light.position);
     light.setInShader(preShader);
     
     // setup model/view/projection
     glm::mat4 view = glm::lookAt(light.position, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 16.3f);
+    glm::mat4 projection = glm::ortho<float>(-6.4f, 6.4f, -4.8f, 4.8f, 0.1f, 15.0f);
     preShader.setMatrix4("view", view);
     preShader.setMatrix4("projection", projection);
     
     glm::mat4 lightProjectionViewProduct = projection * view;
     
+    floor.draw(preShader);
     body.draw(preShader);
     cube.draw(preShader);
     
@@ -171,15 +174,35 @@ int main(int argc, char * argv[])
     
     //draw
     floor.draw(postShader);
-    cube.draw(postShader);
     body.draw(postShader);
-    body.rotation.x += 0.01;
-    body.position.y = 2.5 + sin(glfwGetTime());
+    cube.draw(postShader);
+    
+    
+    /*
+    // depth texture render
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
+    
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    depthShader.use();
+    t.activate(depthShader);
+    depthShader.setInteger("textureObject", 0);
+    
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
     
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
       cout << hex << err << endl;
     }
+    */
+    
+    //update states
+    body.rotation.x += 0.01;
+    body.position.y = 3.0 + sin(glfwGetTime());
     
     glfwSwapBuffers(window);
   }
