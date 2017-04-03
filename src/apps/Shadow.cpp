@@ -1,5 +1,5 @@
 //
-//  Framebuffer.cpp
+//  Shadow.cpp
 //  gl_library
 //
 //  Created by Terna Kpamber on 3/31/17.
@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
   
   //shader
   Shader preShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
-  Shader postShader = Shader("resources/shaders/vshader.glsl", "resources/shaders/fshader.glsl");
+  Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
   
   Light light;
   
@@ -80,32 +80,23 @@ int main(int argc, char * argv[])
   
   glBindVertexArray(0);
   
-  // depth attachement, write only?
-  GLuint depthBuffer;
-  glGenRenderbuffers(1, &depthBuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-  glBindRenderbuffer(GL_RENDERBUFFER, 0);
-  
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-  
   // color attachment
-  Texture t;// = Texture("resources/textures/awesomeface.png");
+  Texture t;
   t.width = width;
   t.height = height;
   glGenTextures(1, &t.textureId);
   glBindTexture(GL_TEXTURE_2D, t.textureId);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t.textureId, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, t.textureId, 0);
   
-  //glDrawBuffer(GL_COLOR_ATTACHMENT0);
-  GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-  glDrawBuffers(1, drawBuffers);
+  // tell opengl not to render the color
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
   
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     exit(-1);
@@ -122,22 +113,22 @@ int main(int argc, char * argv[])
     
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
     
     preShader.use();
-    // setup model/view/projection
-    glm::vec3 eye = glm::vec3(0,0,5) / zoom;
-    glm::mat4 view = glm::lookAt(eye, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    glm::mat4 projection = glm::perspective(glm::radians(35.0f), aspectRatio, 0.1f, 50.0f);
-    preShader.setMatrix4("view", view);
-    preShader.setMatrix4("projection", projection);
     
     // setup light
     light.position = glm::vec3(5,5,5);
     light.Kq = 0.01;
     light.Kl = 0.01;
-    preShader.setVector3f("eyePosition", eye);
+    preShader.setVector3f("eyePosition", light.position);
     light.setInShader(preShader);
+    
+    // setup model/view/projection
+    glm::mat4 view = glm::lookAt(light.position, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 10.0f);//glm::perspective(glm::radians(35.0f), aspectRatio, 0.1f, 50.0f);
+    preShader.setMatrix4("view", view);
+    preShader.setMatrix4("projection", projection);
     
     body.draw(preShader);
     body.rotation.y += 0.01;
@@ -150,6 +141,8 @@ int main(int argc, char * argv[])
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     postShader.use();
+    
+    glm::vec3 eye = glm::vec3(0,0,5) / zoom;
     
     //texture
     t.activate(postShader);
