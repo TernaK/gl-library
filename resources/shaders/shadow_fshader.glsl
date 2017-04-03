@@ -63,11 +63,8 @@ void main()
   float fragDepthInLightSpace = clamp(fragInLightSpace.z, 0, 1.0);
   float closestDepthInLightView = texture(depthTexture, fragInLightSpace.xy).r;//the first channel
   
-  float epsilon= 0.001;
-  if((fragDepthInLightSpace - closestDepthInLightView) > epsilon) {
-    diffuse = vec3(0.0f);
-    specular = vec3(0.0f);
-  }
+  float epsilon = 0.001;
+  float shadow = (fragDepthInLightSpace - closestDepthInLightView) > epsilon ? 1 : 0;
 
-  color = vec4( (ambient + (diffuse + specular) * attenuation), 1.0f);
+  color = vec4( (ambient + (1 - shadow) * (diffuse + specular) * attenuation), 1.0f);
 }
