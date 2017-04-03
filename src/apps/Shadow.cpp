@@ -37,7 +37,8 @@ int main(int argc, char * argv[])
   
   //shader
   Shader preShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
-  Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
+  Shader postShader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
+  //Shader postShader = Shader("resources/shaders/shadow_vshader.glsl", "resources/shaders/shadow_fshader.glsl");
   
   Light light;
   
@@ -121,6 +122,7 @@ int main(int argc, char * argv[])
     light.position = glm::vec3(5,5,5);
     light.Kq = 0.01;
     light.Kl = 0.01;
+    
     preShader.setVector3f("eyePosition", light.position);
     light.setInShader(preShader);
     
@@ -131,28 +133,35 @@ int main(int argc, char * argv[])
     preShader.setMatrix4("projection", projection);
     
     body.draw(preShader);
-    body.rotation.y += 0.01;
     
     //post
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
     
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     postShader.use();
     
+    // eye
     glm::vec3 eye = glm::vec3(0,0,5) / zoom;
+    view = glm::lookAt(eye, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    projection = glm::perspective(glm::radians(35.0f), aspectRatio, 0.1f, 50.0f);
+    postShader.setMatrix4("view", view);
+    postShader.setMatrix4("projection", projection);
+    postShader.setVector3f("eyePosition", light.position);
+    
+    //light
+    light.setInShader(postShader);
     
     //texture
-    t.activate(postShader);
-    GLint loc = glGetUniformLocation(postShader.program, "textureObject");
-    glUniform1i(loc, 0);
+    //t.activate(postShader);
+    //GLint loc = glGetUniformLocation(postShader.program, "textureObject");
+    //glUniform1i(loc, 0);
     
     //draw
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    body.draw(preShader);
+    body.rotation.y += 0.01;
     
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
