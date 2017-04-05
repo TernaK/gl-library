@@ -30,4 +30,7 @@ if(BUILD_GL_LIB_APPS)
 
   add_executable(Shadow Shadow.cpp)
   target_link_libraries(Shadow gl_library)
+  
+  add_executable(Shadow+Camera Shadow+Camera.cpp)
+  target_link_libraries(Shadow+Camera gl_library)
 endif()
