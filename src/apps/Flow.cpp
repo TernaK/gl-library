@@ -17,7 +17,7 @@
 float zoom = 0.35;
 
 float Theta = M_PI_4;
-float Phi = -M_PI_4;
+float Phi = M_PI_4;
 float Radius = 6.0;
 
 glm::vec3 calcCameraPosition(glm::vec3 target = glm::vec3(0)) {
@@ -72,6 +72,9 @@ int main(int argc, char * argv[])
   
   glfwSetKeyCallback(window, keyCallback);
   
+  // set viewport
+  glViewport(0, 0, width, height);
+  
   // framebuffer
   GLuint framebuffer;
   glGenFramebuffers(1, &framebuffer);
@@ -104,16 +107,13 @@ int main(int argc, char * argv[])
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
   glReadBuffer(GL_COLOR_ATTACHMENT0);
   
-  // set viewport
-  glViewport(0, 0, width, height);
-  
   // shader
   Shader shader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
   shader.use();
   
   // setup light
   Light light;
-  light.position = glm::vec3(2,-10,10);
+  light.position = glm::vec3(2,10,10);
   light.Kq = 0.001;
   light.Kl = 0.003;
   light.setInShader(shader);
@@ -121,24 +121,24 @@ int main(int argc, char * argv[])
   
   GLNode wheel1 = GLShapes::createCylinder(0.3, 0.2);
   wheel1.rotation.x = M_PI_2;
-  wheel1.position = glm::vec3(-1.2, 0.3, 0.8);
+  wheel1.position = glm::vec3(-1.2, -0.3, 0.8);
   
   GLNode wheel2 = wheel1;
-  wheel2.position = glm::vec3(1.2, 0.3, 0.8);
+  wheel2.position = glm::vec3(1.2, -0.3, 0.8);
   
   GLNode wheel3 = wheel1;
-  wheel3.position = glm::vec3(-1.2, 0.3, -0.8);
+  wheel3.position = glm::vec3(-1.2, -0.3, -0.8);
   
   GLNode wheel4 = wheel1;
-  wheel4.position = glm::vec3(1.2, 0.3, -0.8);
+  wheel4.position = glm::vec3(1.2, -0.3, -0.8);
   
   GLNode body = GLShapes::createCube();
   body.scale = glm::vec3(3, 0.75, 1.5);
   body.position = glm::vec3(0, 0, 0);
   
   GLNode top = GLShapes::createCube();
-  top.scale = glm::vec3(1.5, 0.5, 1.5);
-  top.position = glm::vec3(-0.3, -0.5, 0);
+  top.scale = glm::vec3(1.5, 0.5, 1.48);
+  top.position = glm::vec3(-0.3, 0.5, 0);
   
   
   Material blackMaterial = Material(glm::vec3(0.01), glm::vec3(0.01), glm::vec3(0.01), 0.001);
@@ -186,7 +186,6 @@ int main(int argc, char * argv[])
     float radius = 3.0f;
     
     object.position = glm::vec3(radius * cos(t), 0.0f, radius * sin(t)) + glm::vec3(cos((t-0.5)*2), 1.0f, sin((t-0.5)*2));
-    
     object.draw(shader);
     
     // read pixels
@@ -194,6 +193,7 @@ int main(int argc, char * argv[])
     
     // update cv Mat
     cv::UMat currentFrame = cv::Mat(height, width, CV_8UC3, pixelData).getUMat(CV_STORAGE_READ);
+    cv::flip(currentFrame, currentFrame, 0);
     cv::UMat flow = currentFrame.clone();
     
     opticalFlow(previousFrame, currentFrame, flow);
@@ -214,9 +214,9 @@ int main(int argc, char * argv[])
     int key = cv::waitKey(30);
     switch(key) {
         
-      case 63232: Phi -= 0.1; break;
+      case 63232: Phi += 0.1; break;
         
-      case 63233: Phi += 0.1; break;
+      case 63233: Phi -= 0.1; break;
         
       case 63234: Theta -= 0.1; break;
         
