@@ -14,6 +14,39 @@
 #include "Light.hpp"
 #include "GLTextNode.hpp"
 
+float zoom = 1.0;
+
+void opticalFlow(const cv::UMat& prevRGB, const cv::UMat& currentRGB, cv::UMat& outputFlow) {
+  cv::UMat prev, current;
+  cv::Mat flow;
+  cv::cvtColor(prevRGB, prev, CV_BGR2GRAY);
+  cv::cvtColor(currentRGB, current, CV_BGR2GRAY);
+  double pyramidScale = 0.5;
+  int levels = 3;
+  int winSize = 11;
+  int iterations = 3;
+  int polyN = 5;
+  double polySigma = 1.1;
+  int flags = 0;
+  cv::calcOpticalFlowFarneback(prev, current, flow, pyramidScale, levels, winSize, iterations, polyN, polySigma, flags);
+  
+  // format flow image
+  double minVal, maxVal;
+  cv::minMaxLoc(flow, &minVal, &maxVal);
+  
+  int pixelStep = 10;
+  for(int row = 0; row < outputFlow.rows; row += pixelStep) {
+    for(int col = 0; col < outputFlow.cols; col += pixelStep) {
+      cv::Vec2f pixelFlow = flow.at<cv::Vec2f>(row, col);// * 10;
+      if(cv::norm(pixelFlow) < 2) continue;
+      cv::Point origin(col, row);
+      cv::Point2f dest(round(col + pixelFlow[0]), round(row + pixelFlow[1]));
+      
+      cv::line(outputFlow, origin, dest, cv::Scalar(255,0,0));
+    }
+  }
+}
+
 int main(int argc, char * argv[])
 {
   bool shouldClose = false;
@@ -23,7 +56,9 @@ int main(int argc, char * argv[])
   // create window
   GLFWwindow* window = glGetWindow(320, 240, "none", false);
   glfwGetFramebufferSize(window, &width, &height);
-//  glEnable(GL_MULTISAMPLE);
+  glEnable(GL_MULTISAMPLE);
+  
+  glfwSetKeyCallback(window, keyCallback);
   
   // framebuffer
   GLuint framebuffer;
@@ -64,13 +99,6 @@ int main(int argc, char * argv[])
   Shader shader = Shader("resources/shaders/material_vshader.glsl", "resources/shaders/material_fshader.glsl");
   shader.use();
   
-  glm::vec3 eye = glm::vec3(0,10,1);
-  glm::mat4 view = glm::lookAt(eye, glm::vec3(0), glm::vec3(0,1,0));
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(width)/height, 0.1f, 50.0f);
-  shader.setMatrix4("view", view);
-  shader.setMatrix4("projection", projection);
-  shader.setVector3f("eyePosition", eye);
-  
   // setup light
   Light light;
   light.position = glm::vec3(2,10,2);
@@ -84,13 +112,27 @@ int main(int argc, char * argv[])
   cv::namedWindow("frambuffer render");
   
   GLbyte *pixelData = new GLbyte[width*height*3];
+  cv::UMat previousFrame = cv::UMat::zeros(height, width, CV_8UC3);
+  
+  int timingCount = 0;
+  double timingAcc = 0;
+  string fpsText = "___ ms per frame";
+  
   do {
+    double startTime = glfwGetTime();
     glfwPollEvents();
     
     // render
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glClearColor(0.7, 0.7, 0.7, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glm::vec3 eye = glm::vec3(0,10,1);
+    glm::mat4 view = glm::lookAt(eye / zoom, glm::vec3(0), glm::vec3(0,1,0));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(width)/height, 0.1f, 50.0f);
+    shader.setMatrix4("view", view);
+    shader.setMatrix4("projection", projection);
+    shader.setVector3f("eyePosition", eye);
 
     float t = glfwGetTime();
     float radius = 2.0f;
@@ -103,12 +145,36 @@ int main(int argc, char * argv[])
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixelData);
     
     // create cv Mat
-    cv::Mat image = cv::Mat(height, width, CV_8UC3, pixelData);
-    cv::imshow("frambuffer render", image);
-    shouldClose = (cv::waitKey(30) == 27);
+    cv::UMat currentFrame = cv::Mat(height, width, CV_8UC3, pixelData).getUMat(CV_STORAGE_READ);
+    cv::UMat flow = currentFrame.clone();
+    
+    opticalFlow(previousFrame, currentFrame, flow);
+    cv::putText(flow, fpsText, cv::Point(10,flow.rows-10), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,255,0));
+    
+    
+    double endTime = glfwGetTime();
+    timingAcc += endTime - startTime;
+    timingCount++;
+    if(timingCount == 30) {
+      fpsText = cv::format("%3.0f ms per frame", timingAcc * 1000 / 30);
+      timingAcc = 0;
+      timingCount = 0;
+    }
+    
+    cv::imshow("frambuffer render", flow);
+    int key = cv::waitKey(30);
+    switch(key) {
+      case 63232: zoom += 0.11; break;
+      case 63233: zoom -= 0.11; break;
+      case 27: shouldClose = true;
+      default: break;
+    }
+    
+    currentFrame.copyTo(previousFrame);
     
     CheckErrors();
     glfwSwapBuffers(window);
+    
   } while(!shouldClose);
   
   delete [] pixelData;
@@ -122,8 +188,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 {
   if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GL_TRUE);
-  // if(key == GLFW_KEY_UP && action == GLFW_PRESS)
-  //   zoom += 0.1;
-  // if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
-  //   zoom -= 0.1;
+   if(key == GLFW_KEY_UP && action == GLFW_PRESS)
+     zoom += 0.11;
+   if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+     zoom -= 0.11;
 }
