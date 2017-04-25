@@ -19,6 +19,16 @@ int main(int argc, char * argv[])
   bool shouldClose = false;
   int width = 640;
   int height = 480;
+  
+  // render texture
+  
+  // framebuffer
+  GLuint framebuffer;
+  glGenFramebuffers(1, &framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	
+  // create renderbuffers
+  
 //  GLFWwindow *window = glGetWindow(320, 240);
   
   // callback
