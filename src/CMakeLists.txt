@@ -23,9 +23,9 @@ set(HEADERS
 	${gl_library_SOURCE_DIR}/include/Material.hpp
 	${gl_library_SOURCE_DIR}/include/GLNode.hpp
 	${gl_library_SOURCE_DIR}/include/Light.hpp
-  	${gl_library_SOURCE_DIR}/include/ParticleSystem.hpp
-  	${gl_library_SOURCE_DIR}/include/MassSpringSystem.hpp
-  	${gl_library_SOURCE_DIR}/include/AppTestUtility.hpp
+	${gl_library_SOURCE_DIR}/include/ParticleSystem.hpp
+	${gl_library_SOURCE_DIR}/include/MassSpringSystem.hpp
+	${gl_library_SOURCE_DIR}/include/AppTestUtility.hpp
 	${gl_library_SOURCE_DIR}/include/GLTextNode.hpp
 	)
 
