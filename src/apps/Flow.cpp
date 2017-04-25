@@ -14,7 +14,18 @@
 #include "Light.hpp"
 #include "GLTextNode.hpp"
 
-float zoom = 1.0;
+float zoom = 0.35;
+
+float Theta = M_PI_4;
+float Phi = -M_PI_4;
+float Radius = 6.0;
+
+glm::vec3 calcCameraPosition(glm::vec3 target = glm::vec3(0)) {
+  float x = cos(Phi) * sin(Theta);
+  float y = sin(Phi);
+  float z = cos(Phi) * cos(Theta);
+  return (glm::vec3(x, y, z) * Radius) + target;
+}
 
 void opticalFlow(const cv::UMat& prevRGB, const cv::UMat& currentRGB, cv::UMat& outputFlow) {
   cv::UMat prev, current;
@@ -42,10 +53,11 @@ void opticalFlow(const cv::UMat& prevRGB, const cv::UMat& currentRGB, cv::UMat& 
       cv::Point origin(col, row);
       cv::Point2f dest(round(col + pixelFlow[0]), round(row + pixelFlow[1]));
       
-      cv::line(outputFlow, origin, dest, cv::Scalar(255,0,0));
+      cv::line(outputFlow, origin, dest, cv::Scalar(0,255,255));
     }
   }
 }
+
 
 int main(int argc, char * argv[])
 {
@@ -101,13 +113,49 @@ int main(int argc, char * argv[])
   
   // setup light
   Light light;
-  light.position = glm::vec3(2,10,2);
-  light.Kq = 0.005;
-  light.Kl = 0.005;
+  light.position = glm::vec3(2,-10,10);
+  light.Kq = 0.001;
+  light.Kl = 0.003;
   light.setInShader(shader);
   
-  GLNode object = GLShapes::createCube(1.0);
-  object.scale.y = 0.3;
+  
+  GLNode wheel1 = GLShapes::createCylinder(0.3, 0.2);
+  wheel1.rotation.x = M_PI_2;
+  wheel1.position = glm::vec3(-1.2, 0.3, 0.8);
+  
+  GLNode wheel2 = wheel1;
+  wheel2.position = glm::vec3(1.2, 0.3, 0.8);
+  
+  GLNode wheel3 = wheel1;
+  wheel3.position = glm::vec3(-1.2, 0.3, -0.8);
+  
+  GLNode wheel4 = wheel1;
+  wheel4.position = glm::vec3(1.2, 0.3, -0.8);
+  
+  GLNode body = GLShapes::createCube();
+  body.scale = glm::vec3(3, 0.75, 1.5);
+  body.position = glm::vec3(0, 0, 0);
+  
+  GLNode top = GLShapes::createCube();
+  top.scale = glm::vec3(1.5, 0.5, 1.5);
+  top.position = glm::vec3(-0.3, -0.5, 0);
+  
+  
+  Material blackMaterial = Material(glm::vec3(0.01), glm::vec3(0.01), glm::vec3(0.01), 0.001);
+  Material blueMaterial = Material(glm::vec3(0.7, 0.01, 0.01), glm::vec3(0.1), glm::vec3(0.01), 0.1);
+  wheel1.setMaterial(blackMaterial);
+  wheel2.setMaterial(blackMaterial);
+  wheel3.setMaterial(blackMaterial);
+  wheel4.setMaterial(blackMaterial);
+  body.setMaterial(blueMaterial);
+  
+  GLNode object;
+  object.addChild(&body);
+  object.addChild(&top);
+  object.addChild(&wheel1);
+  object.addChild(&wheel2);
+  object.addChild(&wheel3);
+  object.addChild(&wheel4);
   
   cv::namedWindow("frambuffer render");
   
@@ -127,7 +175,7 @@ int main(int argc, char * argv[])
     glClearColor(0.7, 0.7, 0.7, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glm::vec3 eye = glm::vec3(0,10,1);
+    glm::vec3 eye = calcCameraPosition();//glm::vec3(0,-10,3);
     glm::mat4 view = glm::lookAt(eye / zoom, glm::vec3(0), glm::vec3(0,1,0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(width)/height, 0.1f, 50.0f);
     shader.setMatrix4("view", view);
@@ -135,9 +183,9 @@ int main(int argc, char * argv[])
     shader.setVector3f("eyePosition", eye);
 
     float t = glfwGetTime();
-    float radius = 2.0f;
-    glm::vec3 position(radius * cos(t), 1.0f, radius * sin(t));
-    object.position = position;
+    float radius = 3.0f;
+    
+    object.position = glm::vec3(radius * cos(t), 0.0f, radius * sin(t)) + glm::vec3(cos((t-0.5)*2), 1.0f, sin((t-0.5)*2));
     
     object.draw(shader);
     
@@ -147,9 +195,6 @@ int main(int argc, char * argv[])
     // update cv Mat
     cv::UMat currentFrame = cv::Mat(height, width, CV_8UC3, pixelData).getUMat(CV_STORAGE_READ);
     cv::UMat flow = currentFrame.clone();
-    
-//    memcpy(currentFrame.getMat(0).data, pixelData, width*height*3); // faster?
-//    memcpy(flow.getMat(0).data, pixelData, width*height*3);
     
     opticalFlow(previousFrame, currentFrame, flow);
     cv::putText(flow, fpsText, cv::Point(10,flow.rows-10), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,255,0));
@@ -168,9 +213,21 @@ int main(int argc, char * argv[])
     cv::imshow("frambuffer render", flow);
     int key = cv::waitKey(30);
     switch(key) {
-      case 63232: zoom += 0.11; break;
-      case 63233: zoom -= 0.11; break;
+        
+      case 63232: Phi -= 0.1; break;
+        
+      case 63233: Phi += 0.1; break;
+        
+      case 63234: Theta -= 0.1; break;
+        
+      case 63235: Theta += 0.1; break;
+        
+      case int('i'): Radius -= 1; break;
+
+      case int('o'): Radius += 1; break;
+        
       case 27: shouldClose = true;
+        
       default: break;
     }
     
