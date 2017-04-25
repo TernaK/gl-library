@@ -33,7 +33,4 @@ if(BUILD_GL_LIB_APPS)
   
   add_executable(Shadow+Camera Shadow+Camera.cpp)
   target_link_libraries(Shadow+Camera gl_library)
-
-  add_executable(Flow Flow.cpp)
-  target_link_libraries(Flow gl_library ${OpenCV_LIBS})
 endif()
