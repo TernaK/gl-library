@@ -144,15 +144,19 @@ int main(int argc, char * argv[])
     // read pixels
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixelData);
     
-    // create cv Mat
+    // update cv Mat
     cv::UMat currentFrame = cv::Mat(height, width, CV_8UC3, pixelData).getUMat(CV_STORAGE_READ);
     cv::UMat flow = currentFrame.clone();
+    
+//    memcpy(currentFrame.getMat(0).data, pixelData, width*height*3); // faster?
+//    memcpy(flow.getMat(0).data, pixelData, width*height*3);
     
     opticalFlow(previousFrame, currentFrame, flow);
     cv::putText(flow, fpsText, cv::Point(10,flow.rows-10), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,255,0));
     
-    
+    // timing
     double endTime = glfwGetTime();
+    
     timingAcc += endTime - startTime;
     timingCount++;
     if(timingCount == 30) {
