@@ -15,13 +15,15 @@
 using namespace std;
 
 // glfw init
-void InitGLFW() {
+void InitGLFW(bool visible) {
   glfwInit();
+  if(!visible) glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
 }
 
 // glew init
@@ -34,10 +36,17 @@ void InitGLEW() {
   }
 }
 
+void CheckErrors() {
+  GLenum err;
+  while((err = glGetError() && err != GL_NO_ERROR)) {
+    cerr << err << endl;
+  }
+}
+
 // setup window
-GLFWwindow* glGetWindow(GLfloat width = 640, GLfloat height = 480, std::string windowTitle = "gl render")
+GLFWwindow* glGetWindow(GLfloat width = 640, GLfloat height = 480, std::string windowTitle = "gl render", bool visible = true)
 {
-  InitGLFW();
+  InitGLFW(visible);
   
   GLFWwindow *window = glfwCreateWindow(width, height, windowTitle.c_str(), nullptr, nullptr);
   if(window == nullptr){
