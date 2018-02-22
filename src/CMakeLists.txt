@@ -29,8 +29,13 @@ set(HEADERS
 	${gl_library_SOURCE_DIR}/include/GLTextNode.hpp
 	)
 
+
+find_package(glew REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(glm REQUIRED)
+
 add_library(gl_library SHARED ${SOURCES} ${HEADERS})#lgtest
-target_link_libraries(gl_library glfw GLEW SOIL ${OpenCV_LIBS})
+target_link_libraries(gl_library ${GLEW_LIBRARIES} glfw SOIL ${OpenCV_LIBS})
 target_link_libraries(gl_library "-framework CoreFoundation")
 target_link_libraries(gl_library "-framework OPENGL")
 
